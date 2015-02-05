@@ -14,6 +14,23 @@ type Task interface {
 	Run() error
 }
 
+func NewTicker(year int, month time.Month, day, hour, min, sec int) *Alarm {
+	now := time.Now()
+	endTime := targetTime(now, year, month, day, hour, min, sec)
+	alarm := new(Alarm)
+	return alarm.makeTicker(now, endTime)
+}
+
+func (a *Alarm) UpdateTicker(year int, month time.Month, day, hour, min, sec int) *Alarm {
+	close(a.Alert)
+
+	now := time.Now()
+	endTime := targetTime(now, year, month, day, hour, min, sec)
+	a.makeTicker(now, endTime)
+
+	return a
+}
+
 func (alarm *Alarm) RunOnDing(task Task) error {
 	select {
 	case <-alarm.Ticker.C:
@@ -27,24 +44,7 @@ func (alarm *Alarm) RunOnDing(task Task) error {
 	return nil
 }
 
-func MakeTicker(year int, month time.Month, day, hour, min, sec int) *Alarm {
-	now := time.Now()
-	endTime := targetTime(now, year, month, day, hour, min, sec)
-	duration := endTime.Sub(now)
-
-	alarm := new(Alarm)
-	alarm.Ticker = time.NewTicker(duration)
-	alarm.FinishesAt = endTime
-	alarm.Alert = make(chan struct{})
-
-	return alarm
-}
-
-func (a *Alarm) UpdateTicker(year int, month time.Month, day, hour, min, sec int) *Alarm {
-	close(a.Alert)
-
-	now := time.Now()
-	endTime := targetTime(now, year, month, day, hour, min, sec)
+func (a *Alarm) makeTicker(now, endTime time.Time) *Alarm {
 	duration := endTime.Sub(now)
 
 	a.Ticker = time.NewTicker(duration)

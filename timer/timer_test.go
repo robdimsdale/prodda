@@ -13,7 +13,7 @@ import (
 var _ = Describe("Timer", func() {
 	It("creates a timer that finishes at the specified time", func() {
 		dingAt := time.Now().Add(45 * time.Second)
-		alarm := timer.MakeTicker(dingAt.Year(), dingAt.Month(), dingAt.Day(), dingAt.Hour(), dingAt.Minute(), dingAt.Second())
+		alarm := timer.NewTicker(dingAt.Year(), dingAt.Month(), dingAt.Day(), dingAt.Hour(), dingAt.Minute(), dingAt.Second())
 		Expect(alarm.FinishesAt).To(Equal(dingAt.Truncate(time.Second)))
 	})
 
@@ -49,7 +49,7 @@ var _ = Describe("Timer", func() {
 
 	It("Can update the ticker", func() {
 		dingAt := time.Now().Add(45 * time.Second)
-		ticker := timer.MakeTicker(dingAt.Year(), dingAt.Month(), dingAt.Day(), dingAt.Hour(), dingAt.Minute(), dingAt.Second())
+		ticker := timer.NewTicker(dingAt.Year(), dingAt.Month(), dingAt.Day(), dingAt.Hour(), dingAt.Minute(), dingAt.Second())
 		Expect(ticker.FinishesAt).To(Equal(dingAt.Truncate(time.Second)))
 
 		newDingAt := dingAt.Add(70 * time.Second)
