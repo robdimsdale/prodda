@@ -7,6 +7,24 @@ import (
 type Alarm struct {
 	Ticker     *time.Ticker
 	FinishesAt time.Time
+	Alert      chan struct{}
+}
+
+type Task interface {
+	Run() error
+}
+
+func (alarm *Alarm) RunOnDing(task Task) error {
+	select {
+	case <-alarm.Ticker.C:
+		err := task.Run()
+		if err != nil {
+			return err
+		}
+	case <-alarm.Alert:
+		alarm.Ticker.Stop()
+	}
+	return nil
 }
 
 func MakeTimer(year int, month time.Month, day, hour, min, sec int) *Alarm {
