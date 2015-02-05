@@ -27,7 +27,7 @@ func (alarm *Alarm) RunOnDing(task Task) error {
 	return nil
 }
 
-func MakeTimer(year int, month time.Month, day, hour, min, sec int) *Alarm {
+func MakeTicker(year int, month time.Month, day, hour, min, sec int) *Alarm {
 	now := time.Now()
 	targetTime := time.Date(year, month, day, hour, min, sec, 0, time.Local)
 	if !targetTime.After(now) {
