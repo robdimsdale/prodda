@@ -46,4 +46,14 @@ var _ = Describe("Timer", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fakeTask.RunCallCount()).To(Equal(0))
 	})
+
+	It("Can update the ticker", func() {
+		dingAt := time.Now().Add(45 * time.Second)
+		ticker := timer.MakeTicker(dingAt.Year(), dingAt.Month(), dingAt.Day(), dingAt.Hour(), dingAt.Minute(), dingAt.Second())
+		Expect(ticker.FinishesAt).To(Equal(dingAt.Truncate(time.Second)))
+
+		newDingAt := dingAt.Add(70 * time.Second)
+		ticker.UpdateTicker(newDingAt.Year(), newDingAt.Month(), newDingAt.Day(), newDingAt.Hour(), newDingAt.Minute(), newDingAt.Second())
+		Expect(ticker.FinishesAt).To(Equal(newDingAt.Truncate(time.Second)))
+	})
 })
