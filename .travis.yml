@@ -17,4 +17,4 @@ before_script:
 
 script:
   - go tool vet $(ls -d */ )
-  - ginkgo -r -race -failOnPending -randomizeAllSpecs
+  - ginkgo -p -r -race -failOnPending -randomizeAllSpecs
