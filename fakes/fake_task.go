@@ -4,14 +4,14 @@ package fakes
 import (
 	"sync"
 
-	"github.com/mfine30/prodda/timer"
+	"github.com/mfine30/prodda"
 )
 
 type FakeTask struct {
 	RunStub        func() error
 	runMutex       sync.RWMutex
 	runArgsForCall []struct{}
-	runReturns     struct {
+	runReturns struct {
 		result1 error
 	}
 }
@@ -40,4 +40,4 @@ func (fake *FakeTask) RunReturns(result1 error) {
 	}{result1}
 }
 
-var _ timer.Task = new(FakeTask)
+var _ prodda.Task = new(FakeTask)

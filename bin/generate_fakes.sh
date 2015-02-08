@@ -1,1 +1,0 @@
-counterfeiter -o fakes/fake_task.go timer/ Task

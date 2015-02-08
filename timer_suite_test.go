@@ -1,4 +1,4 @@
-package timer_test
+package prodda_test
 
 import (
 	. "github.com/onsi/ginkgo"

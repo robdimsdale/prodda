@@ -1,10 +1,10 @@
-package timer_test
+package prodda_test
 
 import (
 	"time"
 
+	"github.com/mfine30/prodda"
 	"github.com/mfine30/prodda/fakes"
-	"github.com/mfine30/prodda/timer"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -13,7 +13,7 @@ import (
 var _ = Describe("Timer", func() {
 	It("creates a timer that finishes at the specified time", func() {
 		dingAt := time.Now().Add(45 * time.Second)
-		alarm := timer.NewTicker(dingAt.Year(), dingAt.Month(), dingAt.Day(), dingAt.Hour(), dingAt.Minute(), dingAt.Second())
+		alarm := prodda.NewTicker(dingAt.Year(), dingAt.Month(), dingAt.Day(), dingAt.Hour(), dingAt.Minute(), dingAt.Second())
 		Expect(alarm.FinishesAt).To(Equal(dingAt.Truncate(time.Second)))
 	})
 
@@ -21,7 +21,7 @@ var _ = Describe("Timer", func() {
 		fakeTask := new(fakes.FakeTask)
 		fakeTask.RunReturns(nil)
 		tick := time.NewTicker(time.Millisecond * 250)
-		alarm := timer.Alarm{}
+		alarm := prodda.Alarm{}
 		alarm.Ticker = tick
 
 		err := alarm.RunOnDing(fakeTask)
@@ -34,7 +34,7 @@ var _ = Describe("Timer", func() {
 		tick := time.NewTicker(time.Millisecond * 300)
 		closeChannel := make(chan struct{})
 
-		alarm := timer.Alarm{}
+		alarm := prodda.Alarm{}
 		alarm.Ticker = tick
 		alarm.Alert = closeChannel
 
@@ -49,7 +49,7 @@ var _ = Describe("Timer", func() {
 
 	It("Can update the ticker", func() {
 		dingAt := time.Now().Add(45 * time.Second)
-		ticker := timer.NewTicker(dingAt.Year(), dingAt.Month(), dingAt.Day(), dingAt.Hour(), dingAt.Minute(), dingAt.Second())
+		ticker := prodda.NewTicker(dingAt.Year(), dingAt.Month(), dingAt.Day(), dingAt.Hour(), dingAt.Minute(), dingAt.Second())
 		Expect(ticker.FinishesAt).To(Equal(dingAt.Truncate(time.Second)))
 
 		newDingAt := dingAt.Add(70 * time.Second)
