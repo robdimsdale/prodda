@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/mfine30/prodda"
+	"github.com/mfine30/prodda/timer"
 )
 
 type FakeTask struct {
