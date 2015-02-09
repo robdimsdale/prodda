@@ -3,8 +3,8 @@ package prodda_test
 import (
 	"time"
 
-	"github.com/mfine30/prodda"
-	"github.com/mfine30/prodda/fakes"
+	"github.com/mfine30/prodda/timer"
+	"github.com/mfine30/prodda/timer/fakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
