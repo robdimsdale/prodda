@@ -21,3 +21,7 @@ In the cloned directory run the following command:
 ```
 ginkgo -p -r -race -failOnPending -randomizeAllSpecs
 ```
+
+## Contributing
+
+The upcoming work for prodda can be found on [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/1272036)
