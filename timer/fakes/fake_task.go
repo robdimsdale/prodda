@@ -11,7 +11,7 @@ type FakeTask struct {
 	RunStub        func() error
 	runMutex       sync.RWMutex
 	runArgsForCall []struct{}
-	runReturns struct {
+	runReturns     struct {
 		result1 error
 	}
 }
