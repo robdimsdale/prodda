@@ -14,19 +14,19 @@ type Task interface {
 	Run() error
 }
 
-func NewTicker(year int, month time.Month, day, hour, min, sec int) *Alarm {
+func NewAlarm(year int, month time.Month, day, hour, min, sec int) *Alarm {
 	now := time.Now()
 	endTime := targetTime(now, year, month, day, hour, min, sec)
 	alarm := new(Alarm)
-	return alarm.makeTicker(now, endTime)
+	return alarm.makeAlarm(now, endTime)
 }
 
-func (a *Alarm) UpdateTicker(year int, month time.Month, day, hour, min, sec int) *Alarm {
+func (a *Alarm) UpdateAlarm(year int, month time.Month, day, hour, min, sec int) *Alarm {
 	close(a.Alert)
 
 	now := time.Now()
 	endTime := targetTime(now, year, month, day, hour, min, sec)
-	a.makeTicker(now, endTime)
+	a.makeAlarm(now, endTime)
 
 	return a
 }
@@ -44,7 +44,7 @@ func (alarm *Alarm) RunOnDing(task Task) error {
 	return nil
 }
 
-func (a *Alarm) makeTicker(now, endTime time.Time) *Alarm {
+func (a *Alarm) makeAlarm(now, endTime time.Time) *Alarm {
 	duration := endTime.Sub(now)
 
 	a.Ticker = time.NewTicker(duration)
