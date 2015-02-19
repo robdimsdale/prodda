@@ -1,4 +1,4 @@
-package prodda_test
+package timer_test
 
 import (
 	"time"
@@ -13,7 +13,7 @@ import (
 var _ = Describe("Timer", func() {
 	It("creates an alarm that finishes at the specified time", func() {
 		dingAt := time.Now().Add(45 * time.Second)
-		alarm := prodda.NewAlarm(dingAt.Year(), dingAt.Month(), dingAt.Day(), dingAt.Hour(), dingAt.Minute(), dingAt.Second())
+		alarm := timer.NewAlarm(dingAt.Year(), dingAt.Month(), dingAt.Day(), dingAt.Hour(), dingAt.Minute(), dingAt.Second())
 		Expect(alarm.FinishesAt).To(Equal(dingAt.Truncate(time.Second)))
 	})
 
@@ -21,7 +21,7 @@ var _ = Describe("Timer", func() {
 		fakeTask := new(fakes.FakeTask)
 		fakeTask.RunReturns(nil)
 		tick := time.NewTicker(time.Millisecond * 250)
-		alarm := prodda.Alarm{}
+		alarm := timer.Alarm{}
 		alarm.Ticker = tick
 
 		err := alarm.RunOnDing(fakeTask)
@@ -34,7 +34,7 @@ var _ = Describe("Timer", func() {
 		tick := time.NewTicker(time.Millisecond * 300)
 		closeChannel := make(chan struct{})
 
-		alarm := prodda.Alarm{}
+		alarm := timer.Alarm{}
 		alarm.Ticker = tick
 		alarm.Alert = closeChannel
 
@@ -49,7 +49,7 @@ var _ = Describe("Timer", func() {
 
 	It("Can update the alarm", func() {
 		dingAt := time.Now().Add(45 * time.Second)
-		ticker := prodda.NewAlarm(dingAt.Year(), dingAt.Month(), dingAt.Day(), dingAt.Hour(), dingAt.Minute(), dingAt.Second())
+		ticker := timer.NewAlarm(dingAt.Year(), dingAt.Month(), dingAt.Day(), dingAt.Hour(), dingAt.Minute(), dingAt.Second())
 		Expect(ticker.FinishesAt).To(Equal(dingAt.Truncate(time.Second)))
 
 		newDingAt := dingAt.Add(70 * time.Second)

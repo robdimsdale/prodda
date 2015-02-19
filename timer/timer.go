@@ -1,4 +1,4 @@
-package prodda
+package timer
 
 import (
 	"time"

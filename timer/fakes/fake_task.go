@@ -40,4 +40,4 @@ func (fake *FakeTask) RunReturns(result1 error) {
 	}{result1}
 }
 
-var _ prodda.Task = new(FakeTask)
+var _ timer.Task = new(FakeTask)
