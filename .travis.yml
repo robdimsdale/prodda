@@ -18,3 +18,9 @@ before_script:
 script:
   - go tool vet $(ls -d */ )
   - ginkgo -p -r -race -failOnPending -randomizeAllSpecs
+
+branches:
+  only:
+    - master
+    - develop
+
