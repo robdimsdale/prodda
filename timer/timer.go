@@ -19,10 +19,15 @@ type Task interface {
 
 // NewAlarm creates an alarm
 // t must be after the current time.
+// task must be non-nil
 func NewAlarm(t time.Time, task Task) (*Alarm, error) {
 	currentTime := time.Now()
 	if t.Before(currentTime) {
 		return nil, errors.New("Time must not be in the past")
+	}
+
+	if task == nil {
+		return nil, errors.New("Task must not be nil.")
 	}
 
 	duration := t.Sub(currentTime)

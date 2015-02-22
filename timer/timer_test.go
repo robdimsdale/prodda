@@ -11,23 +11,36 @@ import (
 )
 
 var _ = Describe("Timer", func() {
+	var fakeTask *fakes.FakeTask
+
+	BeforeEach(func() {
+		fakeTask = &fakes.FakeTask{}
+	})
+
 	Describe("#NewAlarm", func() {
 		It("creates an alarm that finishes at the specified time", func() {
 			dingAt := time.Now().Add(45 * time.Second)
-			alarm, err := timer.NewAlarm(dingAt, nil)
+			alarm, err := timer.NewAlarm(dingAt, fakeTask)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(alarm.FinishesAt).To(Equal(dingAt))
 		})
 
 		It("rejects the time if it is in the past", func() {
 			dingAt := time.Now().Add(-45 * time.Second)
+			_, err := timer.NewAlarm(dingAt, fakeTask)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Time must not be in the past"))
+		})
+
+		It("rejects a nil task", func() {
+			dingAt := time.Now().Add(45 * time.Second)
 			_, err := timer.NewAlarm(dingAt, nil)
 			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Task must not be nil"))
 		})
 	})
 
 	It("Runs a task when the alarm expires", func() {
-		fakeTask := new(fakes.FakeTask)
 		dingAt := time.Now().Add(1 * time.Second)
 		alarm, err := timer.NewAlarm(dingAt, fakeTask)
 
@@ -37,8 +50,6 @@ var _ = Describe("Timer", func() {
 	})
 
 	It("Can cancel the alarm before it expires", func() {
-		fakeTask := new(fakes.FakeTask)
-
 		dingAt := time.Now().Add(300 * time.Millisecond)
 		alarm, err := timer.NewAlarm(dingAt, fakeTask)
 		Expect(err).NotTo(HaveOccurred())
@@ -59,7 +70,7 @@ var _ = Describe("Timer", func() {
 		BeforeEach(func() {
 			var err error
 			originalDingAt = time.Now().Add(500 * time.Millisecond)
-			alarm, err = timer.NewAlarm(originalDingAt, nil)
+			alarm, err = timer.NewAlarm(originalDingAt, fakeTask)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(alarm.FinishesAt).To(Equal(originalDingAt))
 		})
@@ -72,7 +83,6 @@ var _ = Describe("Timer", func() {
 
 		Context("when alarm is running", func() {
 			BeforeEach(func() {
-				fakeTask := new(fakes.FakeTask)
 				var err error
 				alarm, err = timer.NewAlarm(originalDingAt, fakeTask)
 				Expect(err).NotTo(HaveOccurred())
