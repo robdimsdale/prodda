@@ -6,7 +6,7 @@ import (
 )
 
 type Alarm struct {
-	started    bool
+	running    bool
 	Ticker     *time.Ticker
 	FinishesAt time.Time
 	Alert      chan struct{}
@@ -39,7 +39,7 @@ func (a *Alarm) UpdateAlarm(t time.Time) error {
 		return errors.New("Time must not be in the past")
 	}
 
-	if a.started {
+	if a.running {
 		close(a.Alert)
 	}
 
@@ -47,23 +47,23 @@ func (a *Alarm) UpdateAlarm(t time.Time) error {
 	duration := t.Sub(currentTime)
 	a.Ticker = time.NewTicker(duration)
 	a.Alert = make(chan struct{})
-	a.started = false //TODO: backfill test for this
+	// a.started = false //TODO: backfill test for this
 
 	return nil
 }
 
 func (a *Alarm) RunOnDing(task Task) error {
-	a.started = true
+	a.running = true
 	select {
 	case <-a.Ticker.C:
 		err := task.Run()
 		if err != nil {
 			return err
 		}
-		a.started = false
+		a.running = false
 	case <-a.Alert:
 		a.Ticker.Stop()
-		a.started = false
+		a.running = false
 	}
 	return nil
 }
