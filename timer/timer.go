@@ -9,7 +9,7 @@ type Alarm struct {
 	running    bool
 	Ticker     *time.Ticker
 	FinishesAt time.Time
-	Alert      chan struct{}
+	CancelChan chan struct{}
 	task       Task
 }
 
@@ -34,7 +34,7 @@ func NewAlarm(t time.Time, task Task) (*Alarm, error) {
 
 	return &Alarm{
 		FinishesAt: t,
-		Alert:      make(chan struct{}),
+		CancelChan: make(chan struct{}),
 		Ticker:     time.NewTicker(duration),
 		task:       task,
 	}, nil
@@ -47,13 +47,13 @@ func (a *Alarm) UpdateAlarm(t time.Time) error {
 	}
 
 	if a.running {
-		close(a.Alert)
+		close(a.CancelChan)
 	}
 
 	a.FinishesAt = t
 	duration := t.Sub(currentTime)
 	a.Ticker = time.NewTicker(duration)
-	a.Alert = make(chan struct{})
+	a.CancelChan = make(chan struct{})
 
 	return nil
 }
@@ -67,7 +67,7 @@ func (a *Alarm) RunOnDing() error {
 			return err
 		}
 		a.running = false
-	case <-a.Alert:
+	case <-a.CancelChan:
 		a.Ticker.Stop()
 		a.running = false
 	}

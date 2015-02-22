@@ -56,7 +56,7 @@ var _ = Describe("Timer", func() {
 
 		go func() {
 			time.Sleep(100 * time.Millisecond)
-			close(alarm.Alert)
+			close(alarm.CancelChan)
 		}()
 		err = alarm.RunOnDing()
 		Expect(err).NotTo(HaveOccurred())
