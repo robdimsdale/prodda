@@ -9,7 +9,8 @@ import (
 )
 
 type Build struct {
-	Id int `json:"id"`
+	Id    int    `json:"id"`
+	State string `json:"state"`
 }
 
 type Travis struct {
@@ -31,16 +32,36 @@ func (t *Travis) GetBuilds(user, repo string) (*[]Build, error) {
 		return nil, err
 	}
 
-	var builds *[]Build = &[]Build{}
+	builds := &[]Build{}
 	err = json.Unmarshal(respBody, builds)
 	if err != nil {
 		return nil, err
 	}
-	return builds, err
+	return builds, nil
+}
+
+func (t *Travis) GetBuild(buildId int) (*Build, error) {
+	resp, err := http.Get(fmt.Sprintf("%s/builds/%d", t.url, buildId))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	build := &Build{}
+	err = json.Unmarshal(respBody, build)
+	if err != nil {
+		return nil, err
+	}
+	return build, nil
 }
 
 type RestartNotice struct {
 	Notice string `json:"notice"`
+	Error  string `json:"error"`
 }
 
 type RestartResponse struct {
@@ -48,7 +69,7 @@ type RestartResponse struct {
 	Flash  []RestartNotice `json:"flash"`
 }
 
-func (t *Travis) TriggerBuild(user, repo, travisToken string, buildId int) (string, error) {
+func (t *Travis) TriggerBuild(user, repo, travisToken string, buildId int) (*RestartResponse, error) {
 	URL := fmt.Sprintf("%s/requests", t.url)
 	formBody := fmt.Sprintf(`{"build_id": %d}`, buildId)
 	body := ioutil.NopCloser(strings.NewReader(formBody))
@@ -59,7 +80,7 @@ func (t *Travis) TriggerBuild(user, repo, travisToken string, buildId int) (stri
 		body)
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	request.Header.Set("Authorization", fmt.Sprintf("token %s", travisToken))
 	request.Header.Set("Accept", "application/json; version=2")
@@ -68,20 +89,20 @@ func (t *Travis) TriggerBuild(user, repo, travisToken string, buildId int) (stri
 	client := http.Client{}
 	resp, err := client.Do(request)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	defer resp.Body.Close()
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	var restartResponse RestartResponse
 	err = json.Unmarshal(respBody, &restartResponse)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return restartResponse.Flash[0].Notice, nil
+	return &restartResponse, nil
 }

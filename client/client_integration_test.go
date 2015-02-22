@@ -1,6 +1,8 @@
 package client_test
 
 import (
+	"fmt"
+
 	"github.com/mfine30/prodda/client"
 
 	. "github.com/onsi/ginkgo"
@@ -13,6 +15,21 @@ var _ = Describe("ClientIntegration", func() {
 		travisClient := client.NewTravisClient(travisURL)
 		resp, err := travisClient.TriggerBuild("mfine30", "prodda", travisToken, 50151622)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(resp).To(ContainSubstring("successfully restarted"))
+		Expect(len(resp.Flash)).To(BeNumerically(">", 0))
+
+		if resp.Flash[0].Notice == "" {
+			Expect(resp.Flash[0].Error).NotTo(Equal(""))
+		} else if resp.Flash[0].Error == "" {
+			Expect(resp.Flash[0].Notice).NotTo(Equal(""))
+		} else {
+			Fail(fmt.Sprintf("Unexpected response Flash message: %+v", resp.Flash[0]))
+		}
+	})
+
+	It("Can get a specific build on travis", func() {
+		travisClient := client.NewTravisClient(travisURL)
+		resp, err := travisClient.GetBuild(50151622)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(resp.Id).To(Equal(50151622))
 	})
 })
