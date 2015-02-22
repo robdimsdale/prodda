@@ -58,7 +58,7 @@ func (a *Alarm) UpdateAlarm(t time.Time) error {
 	return nil
 }
 
-func (a *Alarm) RunOnDing() error {
+func (a *Alarm) Start() error {
 	a.running = true
 	select {
 	case <-a.Ticker.C:

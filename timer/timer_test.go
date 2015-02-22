@@ -44,7 +44,7 @@ var _ = Describe("Timer", func() {
 		dingAt := time.Now().Add(1 * time.Second)
 		alarm, err := timer.NewAlarm(dingAt, fakeTask)
 
-		err = alarm.RunOnDing()
+		err = alarm.Start()
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fakeTask.RunCallCount()).To(Equal(1))
 	})
@@ -58,7 +58,7 @@ var _ = Describe("Timer", func() {
 			time.Sleep(100 * time.Millisecond)
 			close(alarm.CancelChan)
 		}()
-		err = alarm.RunOnDing()
+		err = alarm.Start()
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fakeTask.RunCallCount()).To(Equal(0))
 	})
@@ -87,7 +87,7 @@ var _ = Describe("Timer", func() {
 				alarm, err = timer.NewAlarm(originalDingAt, fakeTask)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(alarm.FinishesAt).To(Equal(originalDingAt))
-				alarm.RunOnDing()
+				alarm.Start()
 			})
 
 			It("successfully updates the alarm when time is in the future", func() {
