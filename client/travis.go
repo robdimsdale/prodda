@@ -17,8 +17,8 @@ type Travis struct {
 	url string
 }
 
-func NewTravisClient(apiServer string) Travis {
-	return Travis{apiServer}
+func NewTravisClient(apiServer string) *Travis {
+	return &Travis{apiServer}
 }
 
 func (t *Travis) GetBuilds(user, repo string) (*[]Build, error) {

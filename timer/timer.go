@@ -2,7 +2,11 @@ package timer
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"time"
+
+	"github.com/mfine30/prodda/client"
 )
 
 type Alarm struct {
@@ -15,6 +19,29 @@ type Alarm struct {
 
 type Task interface {
 	Run() error
+}
+
+type TravisTask struct {
+	client *client.Travis
+	token  string
+}
+
+func NewTravisTask(token string) *TravisTask {
+	return &TravisTask{
+		client: client.NewTravisClient("https://api.travis-ci.org"),
+		token:  token,
+	}
+}
+
+func (t TravisTask) Run() error {
+	fmt.Printf("Travis task running\n")
+
+	resp, err := t.client.TriggerBuild("mfine30", "prodda", t.token, 50151622)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("response: %+v\n", resp)
+	return nil
 }
 
 // NewAlarm creates an alarm
@@ -58,16 +85,20 @@ func (a *Alarm) UpdateAlarm(t time.Time) error {
 	return nil
 }
 
+// Start will block until either the timer goes off or the Alarm is canceled
 func (a *Alarm) Start() error {
 	a.running = true
 	select {
 	case <-a.Ticker.C:
+		fmt.Printf("Alarm time has gone off\n")
 		err := a.task.Run()
 		if err != nil {
+			fmt.Printf("Error running task: %v\n", err)
 			return err
 		}
 		a.running = false
 	case <-a.CancelChan:
+		fmt.Printf("Alarm canceled\n")
 		a.Ticker.Stop()
 		a.running = false
 	}
