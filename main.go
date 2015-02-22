@@ -32,9 +32,26 @@ func homeHandler(rw http.ResponseWriter, r *http.Request) {
 }
 
 func prodsCreateHandler(rw http.ResponseWriter, r *http.Request) {
-	dingAt := time.Now().Add(5 * time.Second)
+	query := r.URL.Query()
+	fmt.Printf("Query: %+v\n", query)
+	timeQuery := query["time"]
+	if timeQuery == nil {
+		log.Println("Time not present in URL params")
+		fmt.Fprintln(rw, "ERROR: time must be present in URL params")
+		return
+	}
+
+	fmt.Printf("time-now: %v\n", time.Now().Format(time.RFC3339))
+	fmt.Printf("time [0]: %s\n", timeQuery[0])
+	t, err := time.Parse(time.RFC3339, timeQuery[0])
+	if err != nil {
+		log.Printf("Cannot parse time from %+v\n", timeQuery[0])
+		fmt.Fprintf(rw, "ERROR: Cannot parse time from %+s\n", timeQuery[0])
+		return
+	}
+
 	task := timer.NewTravisTask(travisToken)
-	alarm, err := timer.NewAlarm(dingAt, task)
+	alarm, err := timer.NewAlarm(t, task)
 	if err != nil {
 		log.Fatal(err)
 	}
