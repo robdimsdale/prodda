@@ -1,10 +1,12 @@
 package timer
 
 import (
+	"errors"
 	"time"
 )
 
 type Alarm struct {
+	started    bool
 	Ticker     *time.Ticker
 	FinishesAt time.Time
 	Alert      chan struct{}
@@ -14,50 +16,54 @@ type Task interface {
 	Run() error
 }
 
-func NewAlarm(year int, month time.Month, day, hour, min, sec int) *Alarm {
-	now := time.Now()
-	endTime := targetTime(now, year, month, day, hour, min, sec)
-	alarm := new(Alarm)
-	return alarm.makeAlarm(now, endTime)
+// NewAlarm creates an alarm
+// t must be after the current time.
+func NewAlarm(t time.Time) (*Alarm, error) {
+	currentTime := time.Now()
+	if t.Before(currentTime) {
+		return nil, errors.New("Time must not be in the past")
+	}
+
+	duration := t.Sub(currentTime)
+
+	return &Alarm{
+		FinishesAt: t,
+		Alert:      make(chan struct{}),
+		Ticker:     time.NewTicker(duration),
+	}, nil
 }
 
-func (a *Alarm) UpdateAlarm(year int, month time.Month, day, hour, min, sec int) *Alarm {
-	close(a.Alert)
+func (a *Alarm) UpdateAlarm(t time.Time) error {
+	currentTime := time.Now()
+	if t.Before(currentTime) {
+		return errors.New("Time must not be in the past")
+	}
 
-	now := time.Now()
-	endTime := targetTime(now, year, month, day, hour, min, sec)
-	a.makeAlarm(now, endTime)
+	if a.started {
+		close(a.Alert)
+	}
 
-	return a
+	a.FinishesAt = t
+	duration := t.Sub(currentTime)
+	a.Ticker = time.NewTicker(duration)
+	a.Alert = make(chan struct{})
+	a.started = false //TODO: backfill test for this
+
+	return nil
 }
 
-func (alarm *Alarm) RunOnDing(task Task) error {
+func (a *Alarm) RunOnDing(task Task) error {
+	a.started = true
 	select {
-	case <-alarm.Ticker.C:
+	case <-a.Ticker.C:
 		err := task.Run()
 		if err != nil {
 			return err
 		}
-	case <-alarm.Alert:
-		alarm.Ticker.Stop()
+		a.started = false
+	case <-a.Alert:
+		a.Ticker.Stop()
+		a.started = false
 	}
 	return nil
-}
-
-func (a *Alarm) makeAlarm(now, endTime time.Time) *Alarm {
-	duration := endTime.Sub(now)
-
-	a.Ticker = time.NewTicker(duration)
-	a.FinishesAt = endTime
-	a.Alert = make(chan struct{})
-
-	return a
-}
-
-func targetTime(now time.Time, year int, month time.Month, day, hour, min, sec int) time.Time {
-	endTime := time.Date(year, month, day, hour, min, sec, 0, time.Local)
-	if !endTime.After(now) {
-		endTime = endTime.Add(time.Duration(24) * time.Hour)
-	}
-	return endTime
 }
