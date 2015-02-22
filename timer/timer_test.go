@@ -14,44 +14,40 @@ var _ = Describe("Timer", func() {
 	Describe("#NewAlarm", func() {
 		It("creates an alarm that finishes at the specified time", func() {
 			dingAt := time.Now().Add(45 * time.Second)
-			alarm, err := timer.NewAlarm(dingAt)
+			alarm, err := timer.NewAlarm(dingAt, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(alarm.FinishesAt).To(Equal(dingAt))
 		})
 
 		It("rejects the time if it is in the past", func() {
 			dingAt := time.Now().Add(-45 * time.Second)
-			_, err := timer.NewAlarm(dingAt)
+			_, err := timer.NewAlarm(dingAt, nil)
 			Expect(err).To(HaveOccurred())
 		})
 	})
 
 	It("Runs a task when the alarm expires", func() {
 		fakeTask := new(fakes.FakeTask)
-		fakeTask.RunReturns(nil)
-		tick := time.NewTicker(time.Millisecond * 250)
-		alarm := timer.Alarm{}
-		alarm.Ticker = tick
+		dingAt := time.Now().Add(1 * time.Second)
+		alarm, err := timer.NewAlarm(dingAt, fakeTask)
 
-		err := alarm.RunOnDing(fakeTask)
+		err = alarm.RunOnDing()
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fakeTask.RunCallCount()).To(Equal(1))
 	})
 
 	It("Can cancel the alarm before it expires", func() {
 		fakeTask := new(fakes.FakeTask)
-		tick := time.NewTicker(time.Millisecond * 300)
-		closeChannel := make(chan struct{})
 
-		alarm := timer.Alarm{}
-		alarm.Ticker = tick
-		alarm.Alert = closeChannel
+		dingAt := time.Now().Add(300 * time.Millisecond)
+		alarm, err := timer.NewAlarm(dingAt, fakeTask)
+		Expect(err).NotTo(HaveOccurred())
 
 		go func() {
 			time.Sleep(100 * time.Millisecond)
 			close(alarm.Alert)
 		}()
-		err := alarm.RunOnDing(fakeTask)
+		err = alarm.RunOnDing()
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fakeTask.RunCallCount()).To(Equal(0))
 	})
@@ -63,7 +59,7 @@ var _ = Describe("Timer", func() {
 		BeforeEach(func() {
 			var err error
 			originalDingAt = time.Now().Add(500 * time.Millisecond)
-			alarm, err = timer.NewAlarm(originalDingAt)
+			alarm, err = timer.NewAlarm(originalDingAt, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(alarm.FinishesAt).To(Equal(originalDingAt))
 		})
@@ -77,7 +73,11 @@ var _ = Describe("Timer", func() {
 		Context("when alarm is running", func() {
 			BeforeEach(func() {
 				fakeTask := new(fakes.FakeTask)
-				alarm.RunOnDing(fakeTask)
+				var err error
+				alarm, err = timer.NewAlarm(originalDingAt, fakeTask)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(alarm.FinishesAt).To(Equal(originalDingAt))
+				alarm.RunOnDing()
 			})
 
 			It("successfully updates the alarm when time is in the future", func() {
