@@ -28,8 +28,9 @@ func homeHandler(rw http.ResponseWriter, r *http.Request) {
 }
 
 type prodsCreateRequestBody struct {
-	Time  time.Time `json:"time"`
-	Token string    `json:"token"`
+	Time    time.Time `json:"time"`
+	Token   string    `json:"token"`
+	BuildID uint      `json:"build_id"`
 }
 
 func prodsCreateHandler(rw http.ResponseWriter, r *http.Request) {
@@ -38,24 +39,30 @@ func prodsCreateHandler(rw http.ResponseWriter, r *http.Request) {
 
 	err := decoder.Decode(&b)
 	if err != nil {
-		fmt.Fprintf(rw, "Error decoding POST body: %v\n", err)
+		fmt.Fprintf(rw, "ERROR: %v\n", err)
 		return
 	}
 
 	if b.Time.IsZero() {
-		fmt.Fprintf(rw, "Time must be provided\n")
+		fmt.Fprintf(rw, "ERROR: Time must be provided\n")
 		return
 	}
 
 	if b.Token == "" {
-		fmt.Fprintf(rw, "Token must be provided\n")
+		fmt.Fprintf(rw, "ERROR: Token must be provided\n")
 		return
 	}
 
-	task := timer.NewTravisTask(b.Token)
+	if b.BuildID == 0 {
+		fmt.Fprintf(rw, "ERROR: BuildID must be provided\n")
+		return
+	}
+
+	task := timer.NewTravisTask(b.Token, b.BuildID)
 	alarm, err := timer.NewAlarm(b.Time, task)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintf(rw, "ERROR: %v\n", err)
+		return
 	}
 	fmt.Printf("Alarm created\n")
 

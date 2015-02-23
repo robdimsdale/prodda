@@ -31,7 +31,7 @@ type RestartResponse struct {
 	Flash  []RestartNotice `json:"flash"`
 }
 
-func (t *Travis) TriggerBuild(user, repo, travisToken string, buildId int) (*RestartResponse, error) {
+func (t *Travis) TriggerBuild(travisToken string, buildId uint) (*RestartResponse, error) {
 	URL := fmt.Sprintf("%s/requests", t.url)
 	formBody := fmt.Sprintf(`{"build_id": %d}`, buildId)
 	body := ioutil.NopCloser(strings.NewReader(formBody))

@@ -22,23 +22,25 @@ type Task interface {
 }
 
 type TravisTask struct {
-	client *client.Travis
-	token  string
+	client  *client.Travis
+	token   string
+	buildID uint
 }
 
-func NewTravisTask(token string) *TravisTask {
+func NewTravisTask(token string, buildID uint) *TravisTask {
 	return &TravisTask{
-		client: client.NewTravisClient("https://api.travis-ci.org"),
-		token:  token,
+		client:  client.NewTravisClient("https://api.travis-ci.org"),
+		token:   token,
+		buildID: buildID,
 	}
 }
 
 func (t TravisTask) Run() error {
 	fmt.Printf("Travis task running\n")
 
-	resp, err := t.client.TriggerBuild("mfine30", "prodda", t.token, 50151622)
+	resp, err := t.client.TriggerBuild(t.token, t.buildID)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	log.Printf("response: %+v\n", resp)
 	return nil
