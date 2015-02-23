@@ -25,11 +25,4 @@ var _ = Describe("ClientIntegration", func() {
 			Fail(fmt.Sprintf("Unexpected response Flash message: %+v", resp.Flash[0]))
 		}
 	})
-
-	It("Can get a specific build on travis", func() {
-		travisClient := client.NewTravisClient(travisURL)
-		resp, err := travisClient.GetBuild(50151622)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(resp.Id).To(Equal(50151622))
-	})
 })

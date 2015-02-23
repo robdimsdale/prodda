@@ -21,44 +21,6 @@ func NewTravisClient(apiServer string) *Travis {
 	return &Travis{apiServer}
 }
 
-func (t *Travis) GetBuilds(user, repo string) (*[]Build, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/repos/%s/%s/builds", t.url, user, repo))
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	builds := &[]Build{}
-	err = json.Unmarshal(respBody, builds)
-	if err != nil {
-		return nil, err
-	}
-	return builds, nil
-}
-
-func (t *Travis) GetBuild(buildId int) (*Build, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/builds/%d", t.url, buildId))
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	build := &Build{}
-	err = json.Unmarshal(respBody, build)
-	if err != nil {
-		return nil, err
-	}
-	return build, nil
-}
-
 type RestartNotice struct {
 	Notice string `json:"notice"`
 	Error  string `json:"error"`
