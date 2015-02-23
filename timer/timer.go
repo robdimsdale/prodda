@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/mfine30/prodda/client"
@@ -14,6 +15,7 @@ const (
 )
 
 type Alarm struct {
+	mutex      *sync.Mutex
 	running    bool
 	NextTime   time.Time
 	cancelChan chan struct{}
@@ -74,6 +76,7 @@ func NewAlarm(t time.Time, task Task, frequency time.Duration) (*Alarm, error) {
 		cancelChan: make(chan struct{}),
 		task:       task,
 		frequency:  frequency,
+		mutex:      &sync.Mutex{},
 	}, nil
 }
 
@@ -89,6 +92,9 @@ func validateFrequency(frequency time.Duration) error {
 // An error will be thrown if time is not in the future
 // An error will be thrown if the frequency is between 0 and MinimumFrequency (exclusive)
 func (a *Alarm) Update(t time.Time, frequency time.Duration) error {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+
 	currentTime := time.Now()
 	if t.Before(currentTime) {
 		return errors.New("Time must not be in the past")
@@ -112,6 +118,9 @@ func (a *Alarm) Update(t time.Time, frequency time.Duration) error {
 // Cancel will cancel the alarm if it is running
 // It will return an error if the alarm is not running.
 func (a *Alarm) Cancel() error {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+
 	if !a.running {
 		return errors.New("Alarm not running")
 	}
@@ -126,7 +135,10 @@ func (a *Alarm) Start() <-chan error {
 
 	go func() {
 		for {
+			a.mutex.Lock()
 			a.running = true
+			a.mutex.Unlock()
+
 			durationUntilNext := a.NextTime.Sub(time.Now())
 			select {
 			case <-time.After(durationUntilNext):
@@ -134,20 +146,31 @@ func (a *Alarm) Start() <-chan error {
 				err := a.task.Run()
 				if err != nil {
 					fmt.Printf("Error running task: %v\n", err)
-					resultChan <- err
+
+					a.mutex.Lock()
 					a.running = false
+					a.mutex.Unlock()
+
+					resultChan <- err
 					close(resultChan)
 					return
 				}
 				if a.frequency == 0 {
+					a.mutex.Lock()
 					a.running = false
+					a.mutex.Unlock()
+
 					close(resultChan)
 					return
 				}
 				a.NextTime = time.Now().Add(a.frequency)
 			case <-a.cancelChan:
 				fmt.Printf("Alarm canceled\n")
+
+				a.mutex.Lock()
 				a.running = false
+				a.mutex.Unlock()
+
 				close(resultChan)
 				return
 			}
