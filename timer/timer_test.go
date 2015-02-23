@@ -101,7 +101,7 @@ var _ = Describe("Timer", func() {
 
 		It("returns an error when the time is in the past", func() {
 			newDingAt := time.Now().Add(-70 * time.Second)
-			err := alarm.UpdateAlarm(newDingAt)
+			err := alarm.Update(newDingAt)
 			Expect(err).To(HaveOccurred())
 		})
 
@@ -116,7 +116,7 @@ var _ = Describe("Timer", func() {
 
 			It("successfully updates the alarm when time is in the future", func() {
 				newDingAt := time.Now().Add(70 * time.Second)
-				err := alarm.UpdateAlarm(newDingAt)
+				err := alarm.Update(newDingAt)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(alarm.FinishesAt).To(Equal(newDingAt))
 			})
@@ -125,7 +125,7 @@ var _ = Describe("Timer", func() {
 		Context("when alarm is not running", func() {
 			It("successfully updates the alarm when time is in the future", func() {
 				newDingAt := time.Now().Add(70 * time.Second)
-				err := alarm.UpdateAlarm(newDingAt)
+				err := alarm.Update(newDingAt)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(alarm.FinishesAt).To(Equal(newDingAt))
 			})

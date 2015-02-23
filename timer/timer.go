@@ -69,7 +69,10 @@ func NewAlarm(t time.Time, task Task) (*Alarm, error) {
 	}, nil
 }
 
-func (a *Alarm) UpdateAlarm(t time.Time) error {
+// Update will change the time the alarm will finish at.
+// If the alarm is currently running it will be canceled.
+// An error will be thrown if time is not in the future
+func (a *Alarm) Update(t time.Time) error {
 	currentTime := time.Now()
 	if t.Before(currentTime) {
 		return errors.New("Time must not be in the past")
