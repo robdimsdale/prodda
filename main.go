@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -28,9 +29,10 @@ func homeHandler(rw http.ResponseWriter, r *http.Request) {
 }
 
 type prodsCreateRequestBody struct {
-	Time    time.Time `json:"time"`
-	Token   string    `json:"token"`
-	BuildID uint      `json:"build_id"`
+	Time      time.Time `json:"time"`
+	Token     string    `json:"token"`
+	BuildID   uint      `json:"build_id"`
+	Frequency string    `json:"frequency"`
 }
 
 func prodsCreateHandler(rw http.ResponseWriter, r *http.Request) {
@@ -43,23 +45,22 @@ func prodsCreateHandler(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if b.Time.IsZero() {
-		fmt.Fprintf(rw, "ERROR: Time must be provided\n")
+	err = validateProdRequestBody(b)
+	if err != nil {
+		fmt.Fprintf(rw, "ERROR: %s\n", err)
 		return
 	}
 
-	if b.Token == "" {
-		fmt.Fprintf(rw, "ERROR: Token must be provided\n")
-		return
-	}
-
-	if b.BuildID == 0 {
-		fmt.Fprintf(rw, "ERROR: BuildID must be provided\n")
+	// We parse the frequency separately as json decoding does not offer
+	// the flexibility that ParseDuration does.
+	frequency, err := time.ParseDuration(b.Frequency)
+	if err != nil {
+		fmt.Fprintf(rw, "ERROR: %v\n", err)
 		return
 	}
 
 	task := timer.NewTravisTask(b.Token, b.BuildID)
-	alarm, err := timer.NewAlarm(b.Time, task)
+	alarm, err := timer.NewAlarm(b.Time, task, frequency)
 	if err != nil {
 		fmt.Fprintf(rw, "ERROR: %v\n", err)
 		return
@@ -69,4 +70,19 @@ func prodsCreateHandler(rw http.ResponseWriter, r *http.Request) {
 	go alarm.Start()
 
 	fmt.Fprintln(rw, "New prod created")
+}
+
+func validateProdRequestBody(b prodsCreateRequestBody) error {
+	if b.Time.IsZero() {
+		return errors.New("Time must be provided")
+	}
+
+	if b.Token == "" {
+		return errors.New("Token must be provided")
+	}
+
+	if b.BuildID == 0 {
+		return errors.New("BuildID must be provided")
+	}
+	return nil
 }
