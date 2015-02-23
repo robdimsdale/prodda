@@ -40,27 +40,51 @@ var _ = Describe("Timer", func() {
 		})
 	})
 
-	It("Runs a task when the alarm expires", func() {
-		dingAt := time.Now().Add(1 * time.Second)
-		alarm, err := timer.NewAlarm(dingAt, fakeTask)
+	Describe("#Start", func() {
+		It("Runs a task when the alarm expires", func() {
+			dingAt := time.Now().Add(1 * time.Second)
+			alarm, err := timer.NewAlarm(dingAt, fakeTask)
 
-		err = alarm.Start()
-		Expect(err).NotTo(HaveOccurred())
-		Expect(fakeTask.RunCallCount()).To(Equal(1))
+			err = alarm.Start()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeTask.RunCallCount()).To(Equal(1))
+		})
 	})
 
-	It("Can cancel the alarm before it expires", func() {
-		dingAt := time.Now().Add(300 * time.Millisecond)
-		alarm, err := timer.NewAlarm(dingAt, fakeTask)
-		Expect(err).NotTo(HaveOccurred())
+	Describe("#Cancel", func() {
+		It("cancels the alarm if it is running", func() {
+			dingAt := time.Now().Add(300 * time.Millisecond)
+			alarm, err := timer.NewAlarm(dingAt, fakeTask)
+			Expect(err).NotTo(HaveOccurred())
 
-		go func() {
-			time.Sleep(100 * time.Millisecond)
-			close(alarm.CancelChan)
-		}()
-		err = alarm.Start()
-		Expect(err).NotTo(HaveOccurred())
-		Expect(fakeTask.RunCallCount()).To(Equal(0))
+			go func() {
+				time.Sleep(100 * time.Millisecond)
+				alarm.Cancel()
+			}()
+			err = alarm.Start()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeTask.RunCallCount()).To(Equal(0))
+		})
+
+		It("returns an error if the alarm has already finished", func() {
+			dingAt := time.Now().Add(50 * time.Millisecond)
+			alarm, err := timer.NewAlarm(dingAt, fakeTask)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = alarm.Start()
+			Expect(err).NotTo(HaveOccurred())
+			err = alarm.Cancel()
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("returns an error if the alarm has not been started", func() {
+			dingAt := time.Now().Add(300 * time.Millisecond)
+			alarm, err := timer.NewAlarm(dingAt, fakeTask)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = alarm.Cancel()
+			Expect(err).To(HaveOccurred())
+		})
 	})
 
 	Describe("#UpdateAlarm", func() {

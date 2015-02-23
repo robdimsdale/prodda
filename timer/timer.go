@@ -76,7 +76,7 @@ func (a *Alarm) UpdateAlarm(t time.Time) error {
 	}
 
 	if a.running {
-		close(a.CancelChan)
+		a.Cancel()
 	}
 
 	a.FinishesAt = t
@@ -84,6 +84,17 @@ func (a *Alarm) UpdateAlarm(t time.Time) error {
 	a.Ticker = time.NewTicker(duration)
 	a.CancelChan = make(chan struct{})
 
+	return nil
+}
+
+// Cancel will cancel the alarm if it is running
+// It will return an error if the alarm is not running.
+func (a *Alarm) Cancel() error {
+	if !a.running {
+		return errors.New("Alarm not running")
+	}
+
+	close(a.CancelChan)
 	return nil
 }
 
