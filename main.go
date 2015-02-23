@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,13 +12,8 @@ import (
 	"github.com/mfine30/prodda/timer"
 )
 
-var (
-	travisToken string
-)
-
 func main() {
 	port := os.Getenv("PORT")
-	travisToken = os.Getenv("TRAVIS_TOKEN")
 
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/", homeHandler)
@@ -31,27 +27,33 @@ func homeHandler(rw http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(rw, "Prodda")
 }
 
+type prodsCreateRequestBody struct {
+	Time  time.Time `json:"time"`
+	Token string    `json:"token"`
+}
+
 func prodsCreateHandler(rw http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-	fmt.Printf("Query: %+v\n", query)
-	timeQuery := query["time"]
-	if timeQuery == nil {
-		log.Println("Time not present in URL params")
-		fmt.Fprintln(rw, "ERROR: time must be present in URL params")
-		return
-	}
+	decoder := json.NewDecoder(r.Body)
+	var b prodsCreateRequestBody
 
-	fmt.Printf("time-now: %v\n", time.Now().Format(time.RFC3339))
-	fmt.Printf("time [0]: %s\n", timeQuery[0])
-	t, err := time.Parse(time.RFC3339, timeQuery[0])
+	err := decoder.Decode(&b)
 	if err != nil {
-		log.Printf("Cannot parse time from %+v\n", timeQuery[0])
-		fmt.Fprintf(rw, "ERROR: Cannot parse time from %+s\n", timeQuery[0])
+		fmt.Fprintf(rw, "Error decoding POST body: %v\n", err)
 		return
 	}
 
-	task := timer.NewTravisTask(travisToken)
-	alarm, err := timer.NewAlarm(t, task)
+	if b.Time.IsZero() {
+		fmt.Fprintf(rw, "Time must be provided\n")
+		return
+	}
+
+	if b.Token == "" {
+		fmt.Fprintf(rw, "Token must be provided\n")
+		return
+	}
+
+	task := timer.NewTravisTask(b.Token)
+	alarm, err := timer.NewAlarm(b.Time, task)
 	if err != nil {
 		log.Fatal(err)
 	}
