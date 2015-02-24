@@ -4,7 +4,7 @@ Prods things on schedule.
 
 ## Supported Golang versions
 
-The code is tested against the latest versions of golang 1.2, 1.3 and 1.4.
+The code is tested against the latest version of golang 1.4.
 
 ## Getting the code
 
