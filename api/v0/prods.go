@@ -44,7 +44,13 @@ func prodsCreateHandler() http.Handler {
 		}
 
 		task := domain.NewTravisTask(b.Token, b.BuildID)
-		alarm, err := timer.NewAlarm(b.Time, task, frequency)
+		prod, err := domain.NewProd(b.Time, task, frequency)
+		if err != nil {
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		alarm, err := timer.NewAlarm(prod)
 		if err != nil {
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return

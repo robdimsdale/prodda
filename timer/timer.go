@@ -9,68 +9,33 @@ import (
 	"github.com/mfine30/prodda/domain"
 )
 
-const (
-	MinimumFrequency = time.Duration(1 * time.Minute)
-)
-
 type Alarm struct {
 	mutex      *sync.Mutex
 	running    bool
-	NextTime   time.Time
 	cancelChan chan struct{}
-	task       domain.Task
-	frequency  time.Duration
+	prod       *domain.Prod
 }
 
 // NewAlarm creates an alarm
-// An error will be thrown if time is not in the future
-// An error will be thrown if the task is nil
-// An error will be thrown if the frequency is between 0 and MinimumFrequency (exclusive)
-func NewAlarm(t time.Time, task domain.Task, frequency time.Duration) (*Alarm, error) {
-	currentTime := time.Now()
-	if t.Before(currentTime) {
-		return nil, errors.New("Time must not be in the past")
-	}
-
-	if task == nil {
-		return nil, errors.New("Task must not be nil.")
-	}
-
-	err := validateFrequency(frequency)
-	if err != nil {
-		return nil, err
-	}
-
+func NewAlarm(p *domain.Prod) (*Alarm, error) {
 	return &Alarm{
-		NextTime:   t,
+		prod:       p,
 		cancelChan: make(chan struct{}),
-		task:       task,
-		frequency:  frequency,
 		mutex:      &sync.Mutex{},
 	}, nil
 }
 
-func validateFrequency(frequency time.Duration) error {
-	if frequency != 0 && frequency < MinimumFrequency {
-		return fmt.Errorf("Frequency must be 0 or greater than %v", MinimumFrequency)
-	}
-	return nil
+func (a Alarm) NextTime() time.Time {
+	return a.prod.NextTime
 }
 
 // Update will change the time the alarm will finish at.
 // If the alarm is currently running it will be canceled.
-// An error will be thrown if time is not in the future
-// An error will be thrown if the frequency is between 0 and MinimumFrequency (exclusive)
 func (a *Alarm) Update(t time.Time, frequency time.Duration) error {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 
-	currentTime := time.Now()
-	if t.Before(currentTime) {
-		return errors.New("Time must not be in the past")
-	}
-
-	err := validateFrequency(frequency)
+	err := a.prod.Update(t, frequency)
 	if err != nil {
 		return err
 	}
@@ -79,7 +44,6 @@ func (a *Alarm) Update(t time.Time, frequency time.Duration) error {
 		a.Cancel()
 	}
 
-	a.NextTime = t
 	a.cancelChan = make(chan struct{})
 
 	return nil
@@ -109,11 +73,11 @@ func (a *Alarm) Start() <-chan error {
 			a.running = true
 			a.mutex.Unlock()
 
-			durationUntilNext := a.NextTime.Sub(time.Now())
+			durationUntilNext := a.prod.NextTime.Sub(time.Now())
 			select {
 			case <-time.After(durationUntilNext):
 				fmt.Printf("Alarm time has gone off\n")
-				err := a.task.Run()
+				err := a.prod.Run()
 				if err != nil {
 					fmt.Printf("Error running task: %v\n", err)
 
@@ -125,7 +89,7 @@ func (a *Alarm) Start() <-chan error {
 					close(resultChan)
 					return
 				}
-				if a.frequency == 0 {
+				if a.prod.Frequency == 0 {
 					a.mutex.Lock()
 					a.running = false
 					a.mutex.Unlock()
@@ -133,7 +97,7 @@ func (a *Alarm) Start() <-chan error {
 					close(resultChan)
 					return
 				}
-				a.NextTime = time.Now().Add(a.frequency)
+				a.prod.NextTime = time.Now().Add(a.prod.Frequency)
 			case <-a.cancelChan:
 				fmt.Printf("Alarm canceled\n")
 
