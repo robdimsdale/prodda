@@ -11,8 +11,14 @@ type FakeTask struct {
 	RunStub        func() error
 	runMutex       sync.RWMutex
 	runArgsForCall []struct{}
-	runReturns     struct {
+	runReturns struct {
 		result1 error
+	}
+	AsJSONStub        func() domain.TaskJSON
+	asJSONMutex       sync.RWMutex
+	asJSONArgsForCall []struct{}
+	asJSONReturns struct {
+		result1 domain.TaskJSON
 	}
 }
 
@@ -37,6 +43,30 @@ func (fake *FakeTask) RunReturns(result1 error) {
 	fake.RunStub = nil
 	fake.runReturns = struct {
 		result1 error
+	}{result1}
+}
+
+func (fake *FakeTask) AsJSON() domain.TaskJSON {
+	fake.asJSONMutex.Lock()
+	fake.asJSONArgsForCall = append(fake.asJSONArgsForCall, struct{}{})
+	fake.asJSONMutex.Unlock()
+	if fake.AsJSONStub != nil {
+		return fake.AsJSONStub()
+	} else {
+		return fake.asJSONReturns.result1
+	}
+}
+
+func (fake *FakeTask) AsJSONCallCount() int {
+	fake.asJSONMutex.RLock()
+	defer fake.asJSONMutex.RUnlock()
+	return len(fake.asJSONArgsForCall)
+}
+
+func (fake *FakeTask) AsJSONReturns(result1 domain.TaskJSON) {
+	fake.AsJSONStub = nil
+	fake.asJSONReturns = struct {
+		result1 domain.TaskJSON
 	}{result1}
 }
 

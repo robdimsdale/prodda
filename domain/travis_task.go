@@ -13,6 +13,11 @@ type TravisTask struct {
 	buildID uint
 }
 
+type TravisTaskJSON struct {
+	Type    string `json:"type"`
+	BuildID uint   `json:"buildID"`
+}
+
 func NewTravisTask(token string, buildID uint) *TravisTask {
 	return &TravisTask{
 		client:  client.NewTravisClient("https://api.travis-ci.org"),
@@ -30,4 +35,11 @@ func (t TravisTask) Run() error {
 	}
 	log.Printf("response: %+v\n", resp)
 	return nil
+}
+
+func (t TravisTask) AsJSON() TaskJSON {
+	return TravisTaskJSON{
+		Type:    "Travis:",
+		BuildID: t.buildID,
+	}
 }

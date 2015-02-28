@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/mfine30/prodda/domain"
+	"github.com/mfine30/prodda/registry"
 	"github.com/mfine30/prodda/timer"
 )
 
@@ -18,7 +19,29 @@ type prodsCreateRequestBody struct {
 	Frequency string    `json:"frequency"`
 }
 
-func prodsCreateHandler() http.Handler {
+func prodsGetHandler(registry registry.ProdRegistry) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		allProds, err := registry.All()
+		prodsJSON := make([]domain.ProdJSON, len(allProds))
+		for i, _ := range allProds {
+			prodsJSON[i] = allProds[i].AsJSON()
+		}
+		if err != nil {
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		body, err := json.Marshal(prodsJSON)
+		if err != nil {
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		fmt.Fprintf(rw, string(body))
+	})
+}
+
+func prodsCreateHandler(registry registry.ProdRegistry) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
 		var b prodsCreateRequestBody
@@ -45,6 +68,12 @@ func prodsCreateHandler() http.Handler {
 
 		task := domain.NewTravisTask(b.Token, b.BuildID)
 		prod, err := domain.NewProd(b.Time, task, frequency)
+		if err != nil {
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		err = registry.Add(prod)
 		if err != nil {
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return

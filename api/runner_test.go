@@ -19,7 +19,7 @@ var _ = Describe("APIRunner", func() {
 		logger := lagertest.NewTestLogger("APIRunner Test")
 		username := "username"
 		password := "password"
-		handler := api.NewHandler(logger, username, password)
+		handler := api.NewHandler(logger, username, password, nil)
 		apiRunner := api.NewRunner(uint(apiPort), handler, logger)
 		apiProcess := ifrit.Invoke(apiRunner)
 		apiProcess.Signal(os.Kill)

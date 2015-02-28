@@ -11,7 +11,13 @@ const (
 )
 
 type Prod struct {
-	Task      Task          `json:"task"`
+	Task      Task
+	NextTime  time.Time
+	Frequency time.Duration
+}
+
+type ProdJSON struct {
+	Task      TaskJSON      `json:"task"`
 	NextTime  time.Time     `json:"nextTime"`
 	Frequency time.Duration `json:"duration"`
 }
@@ -70,10 +76,15 @@ func (p *Prod) Update(t time.Time, frequency time.Duration) error {
 		return err
 	}
 
-	fmt.Printf("p before: %+v", p)
-
 	p.NextTime = t
 	p.Frequency = frequency
-	fmt.Printf("p after: %+v", p)
 	return nil
+}
+
+func (p Prod) AsJSON() ProdJSON {
+	return ProdJSON{
+		Task:      p.Task.AsJSON(),
+		NextTime:  p.NextTime,
+		Frequency: p.Frequency,
+	}
 }

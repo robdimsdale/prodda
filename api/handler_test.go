@@ -19,7 +19,7 @@ var _ = Describe("Handler", func() {
 
 		JustBeforeEach(func() {
 			logger := lagertest.NewTestLogger("Handler Test")
-			handler = api.NewHandler(logger, username, password)
+			handler = api.NewHandler(logger, username, password, nil)
 		})
 
 		var (
@@ -36,7 +36,7 @@ var _ = Describe("Handler", func() {
 
 			responseWriter = &apifakes.FakeResponseWriter{}
 			var err error
-			request, err = http.NewRequest("POST", "/api/v0/prods", nil)
+			request, err = http.NewRequest("GET", "/api/v0", nil)
 			Expect(err).NotTo(HaveOccurred())
 		})
 

@@ -48,7 +48,7 @@ var _ = Describe("Routing", func() {
 		})
 
 		It("returns 401 when no credentials provided", func() {
-			resp, err := http.Post(url, "", nil)
+			resp, err := http.Get(url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusUnauthorized))
 		})
@@ -68,20 +68,21 @@ var _ = Describe("Routing", func() {
 
 			BeforeEach(func() {
 				var err error
-				req, err = http.NewRequest("POST", url, nil)
+				req, err = http.NewRequest("", url, nil)
 				Expect(err).NotTo(HaveOccurred())
 				req.SetBasicAuth(username, password)
 			})
 
-			It("returns 404 for GET", func() {
+			It("returns 200 for GET", func() {
 				req.Method = "GET"
 				client := &http.Client{}
 				resp, err := client.Do(req)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
+				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 			})
 
 			It("returns 200 for POST", func() {
+				req.Method = "POST"
 				client := &http.Client{}
 				resp, err := client.Do(req)
 				Expect(err).NotTo(HaveOccurred())

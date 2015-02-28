@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/mfine30/prodda/api"
+	"github.com/mfine30/prodda/registry"
 	"github.com/pivotal-golang/lager"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/grouper"
@@ -30,7 +31,8 @@ func main() {
 	username = os.Getenv("USERNAME")
 	password = os.Getenv("PASSWORD")
 
-	handler := api.NewHandler(logger, username, password)
+	prodRegistry := registry.NewInMemoryProdRegistry()
+	handler := api.NewHandler(logger, username, password, prodRegistry)
 
 	group := grouper.NewParallel(os.Kill, grouper.Members{
 		grouper.Member{"api", api.NewRunner(port, handler, logger)},

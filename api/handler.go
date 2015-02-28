@@ -7,16 +7,17 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mfine30/prodda/api/middleware"
 	"github.com/mfine30/prodda/api/v0"
+	"github.com/mfine30/prodda/registry"
 	"github.com/pivotal-golang/lager"
 )
 
 var HomeHandleFunc = homeHandleFunc
 
-func NewHandler(logger lager.Logger, username, password string) http.Handler {
+func NewHandler(logger lager.Logger, username, password string, prodRegistry registry.ProdRegistry) http.Handler {
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandleFunc)
 	api := r.PathPrefix("/api").Subrouter()
-	v0.NewSubrouter(api)
+	v0.NewSubrouter(api, prodRegistry)
 
 	return middleware.Chain{
 		middleware.NewPanicRecovery(logger),
