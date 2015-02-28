@@ -50,14 +50,14 @@ func prodsCreateHandler() http.Handler {
 			return
 		}
 
-		alarm, err := timer.NewAlarm(prod)
+		scheduler, err := timer.NewScheduler(prod)
 		if err != nil {
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
-		fmt.Printf("Alarm created\n")
+		fmt.Printf("Scheduler created\n")
 
-		go alarm.Start()
+		go scheduler.Start()
 
 		fmt.Fprintln(rw, "New prod created")
 	})
