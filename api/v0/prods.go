@@ -19,7 +19,6 @@ type prodsCreateRequestBody struct {
 
 func prodsCreateHandler() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		fmt.Println("in prod create handler")
 		decoder := json.NewDecoder(r.Body)
 		var b prodsCreateRequestBody
 

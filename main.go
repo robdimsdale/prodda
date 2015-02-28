@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/mfine30/prodda/api"
+	"github.com/pivotal-golang/lager"
 )
 
 var (
@@ -19,7 +20,10 @@ func main() {
 	username = os.Getenv("USERNAME")
 	password = os.Getenv("PASSWORD")
 
-	r := api.NewRouter(username, password)
+	logger := lager.NewLogger("Prodda")
+	sink := lager.NewReconfigurableSink(lager.NewWriterSink(os.Stdout, lager.DEBUG), lager.INFO)
+	logger.RegisterSink(sink)
+	r := api.NewRouter(logger, username, password)
 
 	errChan := make(chan error)
 	go func() {
