@@ -13,7 +13,7 @@ import (
 
 var _ = Describe("Timer", func() {
 	var fakeTask *domainfakes.FakeTask
-	frequency := domain.MinimumFrequency
+	frequency := domain.MiminumProdFrequency
 
 	BeforeEach(func() {
 		fakeTask = &domainfakes.FakeTask{}

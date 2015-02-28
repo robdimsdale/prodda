@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	MinimumFrequency = time.Duration(1 * time.Minute)
+	MiminumProdFrequency = time.Duration(1 * time.Minute)
 )
 
 type Prod struct {
@@ -43,10 +43,10 @@ func NewProd(t time.Time, task Task, frequency time.Duration) (*Prod, error) {
 }
 
 func validateFrequency(frequency time.Duration) error {
-	if frequency == 0 || frequency >= MinimumFrequency {
+	if frequency == 0 || frequency >= MiminumProdFrequency {
 		return nil
 	}
-	return fmt.Errorf("Frequency must either be 0 or greater than %v", MinimumFrequency)
+	return fmt.Errorf("Frequency must either be 0 or greater than %v", MiminumProdFrequency)
 }
 
 func (p Prod) Run() error {

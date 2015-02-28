@@ -11,7 +11,7 @@ import (
 
 var _ = Describe("Prod", func() {
 	var fakeTask *domainfakes.FakeTask
-	frequency := domain.MinimumFrequency + 500*time.Millisecond
+	frequency := domain.MiminumProdFrequency + 500*time.Millisecond
 
 	BeforeEach(func() {
 		fakeTask = &domainfakes.FakeTask{}
@@ -47,7 +47,7 @@ var _ = Describe("Prod", func() {
 
 		It("accepts frequency of MinimumFrequency", func() {
 			dingAt := time.Now().Add(45 * time.Second)
-			_, err := domain.NewProd(dingAt, fakeTask, domain.MinimumFrequency)
+			_, err := domain.NewProd(dingAt, fakeTask, domain.MiminumProdFrequency)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -86,10 +86,10 @@ var _ = Describe("Prod", func() {
 		})
 
 		It("accepts frequency of MinimumFrequency", func() {
-			newFrequency := time.Duration(domain.MinimumFrequency)
+			newFrequency := time.Duration(domain.MiminumProdFrequency)
 			err := prod.Update(originalDingAt, newFrequency)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(prod.Frequency).To(Equal(time.Duration(domain.MinimumFrequency)))
+			Expect(prod.Frequency).To(Equal(time.Duration(domain.MiminumProdFrequency)))
 		})
 
 		It("returns an error if the frequency is between 0 and MinimumFrequency", func() {
