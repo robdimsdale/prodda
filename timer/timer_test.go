@@ -3,19 +3,19 @@ package timer_test
 import (
 	"time"
 
+	domainfakes "github.com/mfine30/prodda/domain/fakes"
 	"github.com/mfine30/prodda/timer"
-	"github.com/mfine30/prodda/timer/fakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Timer", func() {
-	var fakeTask *fakes.FakeTask
+	var fakeTask *domainfakes.FakeTask
 	frequency := timer.MinimumFrequency
 
 	BeforeEach(func() {
-		fakeTask = &fakes.FakeTask{}
+		fakeTask = &domainfakes.FakeTask{}
 	})
 
 	Describe("#NewAlarm", func() {

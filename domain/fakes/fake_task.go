@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/mfine30/prodda/timer"
+	"github.com/mfine30/prodda/domain"
 )
 
 type FakeTask struct {
@@ -40,4 +40,4 @@ func (fake *FakeTask) RunReturns(result1 error) {
 	}{result1}
 }
 
-var _ timer.Task = new(FakeTask)
+var _ domain.Task = new(FakeTask)

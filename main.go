@@ -26,6 +26,7 @@ func main() {
 	if err != nil {
 		logger.Fatal("Cannot parse port from environment", err, lager.Data{"PORT": portEnv})
 	}
+
 	username = os.Getenv("USERNAME")
 	password = os.Getenv("PASSWORD")
 

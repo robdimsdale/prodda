@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mfine30/prodda/domain"
 	"github.com/mfine30/prodda/timer"
 )
 
@@ -42,7 +43,7 @@ func prodsCreateHandler() http.Handler {
 			return
 		}
 
-		task := timer.NewTravisTask(b.Token, b.BuildID)
+		task := domain.NewTravisTask(b.Token, b.BuildID)
 		alarm, err := timer.NewAlarm(b.Time, task, frequency)
 		if err != nil {
 			fmt.Fprintf(rw, "ERROR: %v\n", err)

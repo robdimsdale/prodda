@@ -3,11 +3,10 @@ package timer
 import (
 	"errors"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
-	"github.com/mfine30/prodda/client"
+	"github.com/mfine30/prodda/domain"
 )
 
 const (
@@ -19,44 +18,15 @@ type Alarm struct {
 	running    bool
 	NextTime   time.Time
 	cancelChan chan struct{}
-	task       Task
+	task       domain.Task
 	frequency  time.Duration
-}
-
-type Task interface {
-	Run() error
-}
-
-type TravisTask struct {
-	client  *client.Travis
-	token   string
-	buildID uint
-}
-
-func NewTravisTask(token string, buildID uint) *TravisTask {
-	return &TravisTask{
-		client:  client.NewTravisClient("https://api.travis-ci.org"),
-		token:   token,
-		buildID: buildID,
-	}
-}
-
-func (t TravisTask) Run() error {
-	fmt.Printf("Travis task running\n")
-
-	resp, err := t.client.TriggerBuild(t.token, t.buildID)
-	if err != nil {
-		return err
-	}
-	log.Printf("response: %+v\n", resp)
-	return nil
 }
 
 // NewAlarm creates an alarm
 // An error will be thrown if time is not in the future
 // An error will be thrown if the task is nil
 // An error will be thrown if the frequency is between 0 and MinimumFrequency (exclusive)
-func NewAlarm(t time.Time, task Task, frequency time.Duration) (*Alarm, error) {
+func NewAlarm(t time.Time, task domain.Task, frequency time.Duration) (*Alarm, error) {
 	currentTime := time.Now()
 	if t.Before(currentTime) {
 		return nil, errors.New("Time must not be in the past")
