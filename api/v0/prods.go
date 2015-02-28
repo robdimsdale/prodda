@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"path"
+	"strconv"
 	"time"
 
 	"github.com/mfine30/prodda/domain"
@@ -17,6 +19,31 @@ type prodsCreateRequestBody struct {
 	Token     string    `json:"token"`
 	BuildID   uint      `json:"buildID"`
 	Frequency string    `json:"frequency"`
+}
+
+func prodGetHandler(registry registry.ProdRegistry) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		idString := path.Base(r.URL.String())
+		id, err := strconv.Atoi(idString)
+		if err != nil {
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		prod, err := registry.ByID(id)
+		if err != nil {
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		body, err := json.Marshal(prod.AsJSON())
+		if err != nil {
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		fmt.Fprintf(rw, string(body))
+	})
 }
 
 func prodsGetHandler(registry registry.ProdRegistry) http.Handler {

@@ -11,12 +11,14 @@ const (
 )
 
 type Prod struct {
+	ID        int
 	Task      Task
 	NextTime  time.Time
 	Frequency time.Duration
 }
 
 type ProdJSON struct {
+	ID        int           `json:"ID"`
 	Task      TaskJSON      `json:"task"`
 	NextTime  time.Time     `json:"nextTime"`
 	Frequency time.Duration `json:"duration"`
@@ -83,6 +85,7 @@ func (p *Prod) Update(t time.Time, frequency time.Duration) error {
 
 func (p Prod) AsJSON() ProdJSON {
 	return ProdJSON{
+		ID:        p.ID,
 		Task:      p.Task.AsJSON(),
 		NextTime:  p.NextTime,
 		Frequency: p.Frequency,

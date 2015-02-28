@@ -25,4 +25,11 @@ var _ = Describe("InMemoryProdRegistry", func() {
 		Expect(len(allProds)).To(Equal(1))
 		Expect(allProds[0]).To(Equal(prod))
 	})
+
+	It("assigns a new ID to prod when added", func() {
+		prod := &domain.Prod{}
+		r := registry.NewInMemoryProdRegistry()
+		r.Add(prod)
+		Expect(prod.ID).ToNot(Equal(0))
+	})
 })

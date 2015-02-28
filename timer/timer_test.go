@@ -19,8 +19,6 @@ var _ = Describe("Scheduler", func() {
 		fakeTask = &domainfakes.FakeTask{}
 	})
 
-	// TODO: #88871252 add tests for propagation of error from domain.NewProd
-
 	Describe("#Start", func() {
 		It("Runs a task when the scheduler expires", func() {
 			dingAt := time.Now().Add(1 * time.Second)

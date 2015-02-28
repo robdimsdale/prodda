@@ -44,7 +44,7 @@ var _ = Describe("Routing", func() {
 
 	Describe("/api/v0/prods", func() {
 		BeforeEach(func() {
-			url = fmt.Sprintf("%s/api/v0/prods", url)
+			url = fmt.Sprintf("%s/api/v0/prods/", url)
 		})
 
 		It("returns 401 when no credentials provided", func() {
