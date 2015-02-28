@@ -15,7 +15,7 @@ before_script:
 
 script:
   - go tool vet -composites=false $(ls -d */ | grep -v Godeps)
-  - go vet -composites=false github.com/mfine30/prodda
+  - go tool vet -composites=false *.go
   - ginkgo -p -r -race -failOnPending -randomizeAllSpecs
 
 branches:
