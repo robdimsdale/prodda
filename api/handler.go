@@ -10,9 +10,11 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-func NewRouter(logger lager.Logger, username, password string) http.Handler {
+var HomeHandleFunc = homeHandleFunc
+
+func NewHandler(logger lager.Logger, username, password string) http.Handler {
 	r := mux.NewRouter()
-	r.HandleFunc("/", homeHandleFunc)
+	r.HandleFunc("/", HomeHandleFunc)
 	api := r.PathPrefix("/api").Subrouter()
 	v0.NewSubrouter(api)
 

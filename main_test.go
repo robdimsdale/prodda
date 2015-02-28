@@ -26,7 +26,7 @@ var _ = Describe("Routing", func() {
 		var err error
 		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session.Out).Should(gbytes.Say("started on port"))
+		Eventually(session.Out).Should(gbytes.Say("Prodda started"))
 		url = fmt.Sprintf("http://localhost:%d", appPort)
 	})
 

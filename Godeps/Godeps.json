@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/mfine30/prodda",
-	"GoVersion": "go1.4.1",
+	"GoVersion": "go1.4.2",
 	"Deps": [
 		{
 			"ImportPath": "github.com/gorilla/context",
@@ -9,6 +9,24 @@
 		{
 			"ImportPath": "github.com/gorilla/mux",
 			"Rev": "8a875a034c69b940914d83ea03d3f1299b4d094b"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo",
+			"Comment": "v1.1.0-32-g291f28e",
+			"Rev": "291f28e66dd277f35d3635990a7448759645c7e7"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega",
+			"Comment": "v1.0-26-gdc751ce",
+			"Rev": "dc751ce5f266d83c26fae5c0a9093973b29cb61d"
+		},
+		{
+			"ImportPath": "github.com/pivotal-golang/lager",
+			"Rev": "57f34e3d061b11096c1f9f234075eb5d0ba77739"
+		},
+		{
+			"ImportPath": "github.com/tedsuo/ifrit",
+			"Rev": "611096055721e35a95e3d1e4e2bc666fae509fcb"
 		}
 	]
 }
