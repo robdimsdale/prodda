@@ -64,10 +64,6 @@ func prodsCreateHandler() http.Handler {
 }
 
 func validateProdRequestBody(b prodsCreateRequestBody) error {
-	if b.Time.IsZero() {
-		return errors.New("Time must be provided")
-	}
-
 	if b.Token == "" {
 		return errors.New("Token must be provided")
 	}
