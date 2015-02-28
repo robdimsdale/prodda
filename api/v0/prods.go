@@ -14,7 +14,7 @@ import (
 type prodsCreateRequestBody struct {
 	Time      time.Time `json:"time"`
 	Token     string    `json:"token"`
-	BuildID   uint      `json:"build_id"`
+	BuildID   uint      `json:"buildID"`
 	Frequency string    `json:"frequency"`
 }
 

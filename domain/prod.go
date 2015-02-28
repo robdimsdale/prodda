@@ -12,7 +12,7 @@ const (
 
 type Prod struct {
 	Task      Task          `json:"task"`
-	NextTime  time.Time     `json:"next_time"`
+	NextTime  time.Time     `json:"nextTime"`
 	Frequency time.Duration `json:"duration"`
 }
 
