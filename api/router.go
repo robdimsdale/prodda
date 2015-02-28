@@ -15,7 +15,9 @@ import (
 func NewRouter(username, password string) http.Handler {
 	r := mux.NewRouter()
 	r.HandleFunc("/", homeHandleFunc)
-	prods := r.PathPrefix("/prods").Subrouter()
+	api := r.PathPrefix("/api").Subrouter()
+	v0 := api.PathPrefix("/v0").Subrouter()
+	prods := v0.PathPrefix("/prods").Subrouter()
 	prods.Methods("POST").Handler(prodsCreateHandler())
 
 	return authMiddleware(r, username, password)
