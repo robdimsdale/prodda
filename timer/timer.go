@@ -25,24 +25,17 @@ func NewScheduler(p *domain.Prod) (*Scheduler, error) {
 	}, nil
 }
 
-func (a Scheduler) NextTime() time.Time {
-	return a.prod.NextTime
-}
-
-// Update will change the time the at which prod will be scheduled.
+// Update updates the prod to the one provided.
 // If the scheduler is currently running it will be canceled,
 // and Start will need to be called again.
-func (a *Scheduler) Update(t time.Time, frequency time.Duration) error {
+func (a *Scheduler) Update(prod *domain.Prod) error {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 
-	err := a.prod.Update(t, frequency)
-	if err != nil {
-		return err
-	}
+	a.prod = prod
 
 	if a.running {
-		a.Cancel()
+		_ = a.Cancel()
 	}
 
 	a.cancelChan = make(chan struct{})

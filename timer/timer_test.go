@@ -77,49 +77,4 @@ var _ = Describe("Scheduler", func() {
 			Expect(err).To(HaveOccurred())
 		})
 	})
-
-	Describe("#UpdateScheduler", func() {
-		var scheduler *timer.Scheduler
-		var originalDingAt time.Time
-
-		BeforeEach(func() {
-			var err error
-			originalDingAt = time.Now().Add(500 * time.Millisecond)
-			prod, err := domain.NewProd(originalDingAt, fakeTask, frequency)
-			Expect(err).NotTo(HaveOccurred())
-			scheduler, err = timer.NewScheduler(prod)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(scheduler.NextTime()).To(Equal(originalDingAt))
-		})
-
-		// TODO: #88871252 add tests for propagation of error from prod.Update
-
-		Context("when scheduler is running", func() {
-			BeforeEach(func() {
-				var err error
-				prod, err := domain.NewProd(originalDingAt, fakeTask, frequency)
-				Expect(err).NotTo(HaveOccurred())
-				scheduler, err = timer.NewScheduler(prod)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(scheduler.NextTime()).To(Equal(originalDingAt))
-				scheduler.Start()
-			})
-
-			It("successfully updates the scheduler when time is in the future", func() {
-				newDingAt := time.Now().Add(70 * time.Second)
-				err := scheduler.Update(newDingAt, 0)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(scheduler.NextTime()).To(Equal(newDingAt))
-			})
-		})
-
-		Context("when scheduler is not running", func() {
-			It("successfully updates the scheduler when time is in the future", func() {
-				newDingAt := time.Now().Add(70 * time.Second)
-				err := scheduler.Update(newDingAt, 0)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(scheduler.NextTime()).To(Equal(newDingAt))
-			})
-		})
-	})
 })
