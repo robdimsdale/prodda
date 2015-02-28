@@ -14,7 +14,7 @@ before_script:
   - export PATH=$HOME/gopath/bin:$PATH
 
 script:
-  - go tool vet $(ls -d */ )
+  - go tool vet $(ls -d */ | grep -v Godeps)
   - ginkgo -p -r -race -failOnPending -randomizeAllSpecs
 
 branches:
