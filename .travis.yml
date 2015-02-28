@@ -14,7 +14,8 @@ before_script:
   - export PATH=$HOME/gopath/bin:$PATH
 
 script:
-  - go tool vet $(ls -d */ | grep -v Godeps)
+  - go tool vet -composites=false $(ls -d */ | grep -v Godeps)
+  - go vet -composites=false github.com/mfine30/prodda
   - ginkgo -p -r -race -failOnPending -randomizeAllSpecs
 
 branches:
