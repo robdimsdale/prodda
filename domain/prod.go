@@ -22,7 +22,10 @@ type Prod struct {
 // An error will be thrown if the frequency is between 0 and MinimumFrequency (exclusive)
 func NewProd(t time.Time, task Task, frequency time.Duration) (*Prod, error) {
 	currentTime := time.Now()
-	if t.Before(currentTime) {
+
+	if t.IsZero() {
+		t = currentTime
+	} else if t.Before(currentTime) {
 		return nil, errors.New("Time must not be in the past")
 	}
 

@@ -25,6 +25,14 @@ var _ = Describe("Prod", func() {
 			Expect(prod.NextTime).To(Equal(dingAt))
 		})
 
+		It("Sets time to current time if it is zero", func() {
+			startTime := time.Now()
+			dingAt := time.Time{}
+			prod, err := domain.NewProd(dingAt, fakeTask, frequency)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(prod.NextTime.After(startTime)).To(BeTrue())
+		})
+
 		It("rejects the time if it is in the past", func() {
 			dingAt := time.Now().Add(-45 * time.Second)
 			_, err := domain.NewProd(dingAt, fakeTask, frequency)
