@@ -46,7 +46,7 @@ curl -XGET /prods/:id
 #### Update existing prod
 
 ```
-curl -XPOST /prods/:id -d '{<updated-prod-body-as-json>}'
+curl -XPUT /prods/:id -d '{<updated-prod-body-as-json>}'
 ```
 
 #### Delete existing prod
