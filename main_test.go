@@ -80,14 +80,6 @@ var _ = Describe("Routing", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 			})
-
-			It("returns 200 for POST", func() {
-				req.Method = "POST"
-				client := &http.Client{}
-				resp, err := client.Do(req)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Equal(http.StatusOK))
-			})
 		})
 	})
 })
