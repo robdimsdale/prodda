@@ -20,6 +20,7 @@ func NewSubrouter(
 	prods.Handle("/", prodsCreateHandler(prodRegistry, logger, c)).Methods("POST")
 	prods.Handle("/{id}", prodGetHandler(prodRegistry, logger)).Methods("GET")
 	prods.Handle("/{id}", prodUpdateHandler(prodRegistry, logger, c)).Methods("POST")
+	prods.Handle("/{id}", prodDeleteHandler(prodRegistry, logger, c)).Methods("DELETE")
 
 	return r
 }

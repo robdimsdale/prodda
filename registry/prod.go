@@ -15,6 +15,7 @@ type ProdRegistry interface {
 	Add(p *domain.Prod) error
 	ByID(ID int) (*domain.Prod, error)
 	Update(prod *domain.Prod) (*domain.Prod, error)
+	Remove(prod *domain.Prod) error
 }
 
 type InMemoryProdRegistry struct {
@@ -49,17 +50,26 @@ func (r *InMemoryProdRegistry) Add(p *domain.Prod) error {
 
 // ByID is guaranteed to return non-nil arg0 if error is nil
 func (r InMemoryProdRegistry) ByID(ID int) (*domain.Prod, error) {
-	allProds, err := r.All()
+	_, found, err := r.byID(ID)
 	if err != nil {
 		return nil, err
 	}
+	return found, nil
+}
 
-	for _, p := range allProds {
+func (r InMemoryProdRegistry) byID(ID int) (int, *domain.Prod, error) {
+	allProds, err := r.All()
+	if err != nil {
+		return 0, nil, err
+	}
+
+	for i, p := range allProds {
 		if p.ID == ID {
-			return p, nil
+			return i, p, nil
 		}
 	}
-	return nil, fmt.Errorf("No prod found for id :%d", ID)
+	return 0, nil, fmt.Errorf("No prod found for id :%d", ID)
+
 }
 
 func (r *InMemoryProdRegistry) Update(prod *domain.Prod) (*domain.Prod, error) {
@@ -71,4 +81,16 @@ func (r *InMemoryProdRegistry) Update(prod *domain.Prod) (*domain.Prod, error) {
 	found.Schedule = prod.Schedule
 
 	return found, nil
+}
+
+func (r *InMemoryProdRegistry) Remove(prod *domain.Prod) error {
+	i, _, err := r.byID(prod.ID)
+	if err != nil {
+		return err
+	}
+
+	r.prods[i] = nil // explicitly set to nil to avoid memory leaks
+	r.prods = append(r.prods[:i], r.prods[i+1:]...)
+
+	return nil
 }

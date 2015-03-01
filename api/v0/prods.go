@@ -91,6 +91,32 @@ func prodUpdateHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 	})
 }
 
+func prodDeleteHandler(registry registry.ProdRegistry, logger lager.Logger, c *cron.Cron) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		idString := path.Base(r.URL.String())
+		id, err := strconv.Atoi(idString)
+		if err != nil {
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		prod, err := registry.ByID(id)
+		if err != nil {
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		c.Remove(cron.EntryID(prod.ID))
+
+		err = registry.Remove(prod)
+		if err != nil {
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+		logger.Info("prod deleted", lager.Data{"prod": prod})
+	})
+}
+
 func prodsGetHandler(registry registry.ProdRegistry, logger lager.Logger) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		allProds, err := registry.All()
