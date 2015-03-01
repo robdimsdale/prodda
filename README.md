@@ -95,12 +95,15 @@ The [**master**](https://github.com/mfine30/prodda/tree/master) branch points to
 
 Dependencies are managed via [godep](http://godoc.org/github.com/tools/godep). To ensure the dependencies are correct, run `godep restore`. Adding a new dependency requires running `godep save`; the resultant changes in the `Godeps/` directory must be committed.
 
-### Go vet
+### Git hooks
+
+To set up git hooks, run the following command:
 
 ```
-go tool vet -composites=false $(ls -d */ | grep -v Godeps)
-go tool vet -composites=false *.go
+./scripts/install-git-hooks
 ```
+
+This will need to be re-run if any new git hooks are added, but not if existing ones change.
 
 ### Running tests
 

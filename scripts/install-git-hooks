@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PROJECT_DIR=$(cd $(dirname $0)/.. && pwd)
+
+ln -fs ${PROJECT_DIR}/git-hooks/pre-commit ${PROJECT_DIR}/.git/hooks/pre-commit

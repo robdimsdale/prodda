@@ -1,0 +1,11 @@
+#!/bin/bash
+
+failed_vet=$(go tool vet -composites=false $(ls -d */ | grep -v Godeps) 2>&1 && \
+  go tool vet -composites=false *.go 2>&1)
+
+if [ -n "$failed_vet" ]; then
+  echo $'\e[31mThe following vet errors were found:\e[0m'
+  echo
+  echo "$failed_vet"
+  exit 1
+fi
