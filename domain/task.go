@@ -1,7 +1,7 @@
 package domain
 
 type Task interface {
-	Run() error
+	Run()
 	AsJSON() TaskJSON
 }
 

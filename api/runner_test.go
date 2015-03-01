@@ -7,6 +7,7 @@ import (
 
 	"github.com/mfine30/prodda/api"
 	"github.com/pivotal-golang/lager/lagertest"
+	"gopkg.in/robfig/cron.v2"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -19,7 +20,8 @@ var _ = Describe("APIRunner", func() {
 		logger := lagertest.NewTestLogger("APIRunner Test")
 		username := "username"
 		password := "password"
-		handler := api.NewHandler(logger, username, password, nil)
+		fakeCron := &cron.Cron{}
+		handler := api.NewHandler(logger, username, password, nil, fakeCron)
 		apiRunner := api.NewRunner(uint(apiPort), handler, logger)
 		apiProcess := ifrit.Invoke(apiRunner)
 		apiProcess.Signal(os.Kill)

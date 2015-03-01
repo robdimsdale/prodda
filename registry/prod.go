@@ -14,6 +14,7 @@ type ProdRegistry interface {
 	// Add is responsible for assiging a unique ID to the provided prod
 	Add(p *domain.Prod) error
 	ByID(ID int) (*domain.Prod, error)
+	Update(prod *domain.Prod) (*domain.Prod, error)
 }
 
 type InMemoryProdRegistry struct {
@@ -46,6 +47,7 @@ func (r *InMemoryProdRegistry) Add(p *domain.Prod) error {
 	return nil
 }
 
+// ByID is guaranteed to return non-nil arg0 if error is nil
 func (r InMemoryProdRegistry) ByID(ID int) (*domain.Prod, error) {
 	allProds, err := r.All()
 	if err != nil {
@@ -58,4 +60,15 @@ func (r InMemoryProdRegistry) ByID(ID int) (*domain.Prod, error) {
 		}
 	}
 	return nil, fmt.Errorf("No prod found for id :%d", ID)
+}
+
+func (r *InMemoryProdRegistry) Update(prod *domain.Prod) (*domain.Prod, error) {
+	found, err := r.ByID(prod.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	found.Schedule = prod.Schedule
+
+	return found, nil
 }

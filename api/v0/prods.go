@@ -7,21 +7,20 @@ import (
 	"net/http"
 	"path"
 	"strconv"
-	"time"
 
 	"github.com/mfine30/prodda/domain"
 	"github.com/mfine30/prodda/registry"
-	"github.com/mfine30/prodda/timer"
+	"github.com/pivotal-golang/lager"
+	"gopkg.in/robfig/cron.v2"
 )
 
-type prodsCreateRequestBody struct {
-	Time      time.Time `json:"time"`
-	Token     string    `json:"token"`
-	BuildID   uint      `json:"buildID"`
-	Frequency string    `json:"frequency"`
+type prodsCreateUpdateRequestBody struct {
+	Token    string `json:"token"`
+	BuildID  uint   `json:"buildID"`
+	Schedule string `json:"schedule"`
 }
 
-func prodGetHandler(registry registry.ProdRegistry) http.Handler {
+func prodGetHandler(registry registry.ProdRegistry, logger lager.Logger) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		idString := path.Base(r.URL.String())
 		id, err := strconv.Atoi(idString)
@@ -46,7 +45,53 @@ func prodGetHandler(registry registry.ProdRegistry) http.Handler {
 	})
 }
 
-func prodsGetHandler(registry registry.ProdRegistry) http.Handler {
+func prodUpdateHandler(registry registry.ProdRegistry, logger lager.Logger, c *cron.Cron) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		idString := path.Base(r.URL.String())
+		id, err := strconv.Atoi(idString)
+		if err != nil {
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		prod, err := registry.ByID(id)
+		if err != nil {
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		decoder := json.NewDecoder(r.Body)
+		var b prodsCreateUpdateRequestBody
+
+		err = decoder.Decode(&b)
+		if err != nil {
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		prod.Schedule = b.Schedule
+
+		body, err := json.Marshal(prod.AsJSON())
+		if err != nil {
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		c.Remove(cron.EntryID(prod.ID))
+		c.AddJob(prod.Schedule, prod.Task)
+
+		prod, err = registry.Update(prod)
+		if err != nil {
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+		logger.Info("prod updated", lager.Data{"prod": prod})
+
+		fmt.Fprintf(rw, string(body))
+	})
+}
+
+func prodsGetHandler(registry registry.ProdRegistry, logger lager.Logger) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		allProds, err := registry.All()
 		prodsJSON := make([]domain.ProdJSON, len(allProds))
@@ -68,10 +113,10 @@ func prodsGetHandler(registry registry.ProdRegistry) http.Handler {
 	})
 }
 
-func prodsCreateHandler(registry registry.ProdRegistry) http.Handler {
+func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *cron.Cron) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
-		var b prodsCreateRequestBody
+		var b prodsCreateUpdateRequestBody
 
 		err := decoder.Decode(&b)
 		if err != nil {
@@ -85,16 +130,8 @@ func prodsCreateHandler(registry registry.ProdRegistry) http.Handler {
 			return
 		}
 
-		// We parse the frequency separately as json decoding does not offer
-		// the flexibility that ParseDuration does.
-		frequency, err := time.ParseDuration(b.Frequency)
-		if err != nil {
-			fmt.Fprintf(rw, "ERROR: %v\n", err)
-			return
-		}
-
 		task := domain.NewTravisTask(b.Token, b.BuildID)
-		prod, err := domain.NewProd(b.Time, task, frequency)
+		prod, err := domain.NewProd(task, b.Schedule)
 		if err != nil {
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -106,20 +143,22 @@ func prodsCreateHandler(registry registry.ProdRegistry) http.Handler {
 			return
 		}
 
-		scheduler, err := timer.NewScheduler(prod)
+		c.AddJob(prod.Schedule, prod.Task)
+
+		body, err := json.Marshal(prod.AsJSON())
 		if err != nil {
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
-		fmt.Printf("Scheduler created\n")
 
-		go scheduler.Start()
+		logger.Info("prod created", lager.Data{"prod": prod})
 
-		fmt.Fprintln(rw, "New prod created")
+		fmt.Fprintf(rw, string(body))
+
 	})
 }
 
-func validateProdRequestBody(b prodsCreateRequestBody) error {
+func validateProdRequestBody(b prodsCreateUpdateRequestBody) error {
 	if b.Token == "" {
 		return errors.New("Token must be provided")
 	}

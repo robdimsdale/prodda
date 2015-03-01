@@ -26,15 +26,12 @@ func NewTravisTask(token string, buildID uint) *TravisTask {
 	}
 }
 
-func (t TravisTask) Run() error {
+func (t TravisTask) Run() {
 	fmt.Printf("Travis task running\n")
 
-	resp, err := t.client.TriggerBuild(t.token, t.buildID)
-	if err != nil {
-		return err
-	}
+	resp, _ := t.client.TriggerBuild(t.token, t.buildID)
 	log.Printf("response: %+v\n", resp)
-	return nil
+	return
 }
 
 func (t TravisTask) AsJSON() TaskJSON {

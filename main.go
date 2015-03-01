@@ -6,9 +6,11 @@ import (
 
 	"github.com/mfine30/prodda/api"
 	"github.com/mfine30/prodda/registry"
+	"github.com/mfine30/prodda/schedule"
 	"github.com/pivotal-golang/lager"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/grouper"
+	"gopkg.in/robfig/cron.v2"
 )
 
 var (
@@ -32,10 +34,19 @@ func main() {
 	password = os.Getenv("PASSWORD")
 
 	prodRegistry := registry.NewInMemoryProdRegistry()
-	handler := api.NewHandler(logger, username, password, prodRegistry)
+	c := cron.New()
+	logger.Info("cron created.")
+
+	handler := api.NewHandler(
+		logger,
+		username,
+		password,
+		prodRegistry,
+		c)
 
 	group := grouper.NewParallel(os.Kill, grouper.Members{
 		grouper.Member{"api", api.NewRunner(port, handler, logger)},
+		grouper.Member{"schedule", schedule.NewRunner(c, logger)},
 	})
 	process := ifrit.Invoke(group)
 

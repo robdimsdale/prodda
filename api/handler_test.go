@@ -8,18 +8,21 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal-golang/lager/lagertest"
+	"gopkg.in/robfig/cron.v2"
 )
 
 var _ = Describe("Handler", func() {
 	username := "username"
 	password := "password"
 	var handler http.Handler
+	var fakeCron *cron.Cron
 
 	Context("when a request panics", func() {
 
 		JustBeforeEach(func() {
+			fakeCron = &cron.Cron{}
 			logger := lagertest.NewTestLogger("Handler Test")
-			handler = api.NewHandler(logger, username, password, nil)
+			handler = api.NewHandler(logger, username, password, nil, fakeCron)
 		})
 
 		var (
