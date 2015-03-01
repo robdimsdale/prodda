@@ -156,7 +156,7 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 			return
 		}
 
-		task := domain.NewTravisTask(b.Token, b.BuildID)
+		task := domain.NewTravisTask(b.Token, b.BuildID, logger)
 		prod, err := domain.NewProd(task, b.Schedule)
 		if err != nil {
 			fmt.Fprintf(rw, "ERROR: %v\n", err)

@@ -1,16 +1,15 @@
 package domain
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/mfine30/prodda/client"
+	"github.com/pivotal-golang/lager"
 )
 
 type TravisTask struct {
 	client  *client.Travis
 	token   string
 	buildID uint
+	logger  lager.Logger
 }
 
 type TravisTaskJSON struct {
@@ -18,19 +17,20 @@ type TravisTaskJSON struct {
 	BuildID uint   `json:"buildID"`
 }
 
-func NewTravisTask(token string, buildID uint) *TravisTask {
+func NewTravisTask(token string, buildID uint, logger lager.Logger) *TravisTask {
 	return &TravisTask{
 		client:  client.NewTravisClient("https://api.travis-ci.org"),
 		token:   token,
 		buildID: buildID,
+		logger:  logger,
 	}
 }
 
 func (t TravisTask) Run() {
-	fmt.Printf("Travis task running\n")
+	t.logger.Info("Task started", lager.Data{"task": t.AsJSON()})
 
-	resp, _ := t.client.TriggerBuild(t.token, t.buildID)
-	log.Printf("response: %+v\n", resp)
+	response, _ := t.client.TriggerBuild(t.token, t.buildID)
+	t.logger.Info("Task completed", lager.Data{"task": t.AsJSON(), "response": response})
 	return
 }
 
