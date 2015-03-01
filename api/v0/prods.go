@@ -25,18 +25,21 @@ func prodGetHandler(registry registry.ProdRegistry, logger lager.Logger) http.Ha
 		idString := path.Base(r.URL.String())
 		id, err := strconv.Atoi(idString)
 		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
 		prod, err := registry.ByID(id)
 		if err != nil {
+			rw.WriteHeader(http.StatusNotFound)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
 		body, err := json.Marshal(prod.AsJSON())
 		if err != nil {
+			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
@@ -50,12 +53,14 @@ func prodUpdateHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 		idString := path.Base(r.URL.String())
 		id, err := strconv.Atoi(idString)
 		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
 		prod, err := registry.ByID(id)
 		if err != nil {
+			rw.WriteHeader(http.StatusNotFound)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
@@ -65,27 +70,29 @@ func prodUpdateHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 
 		err = decoder.Decode(&b)
 		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
 		prod.Schedule = b.Schedule
-
-		body, err := json.Marshal(prod.AsJSON())
-		if err != nil {
-			fmt.Fprintf(rw, "ERROR: %v\n", err)
-			return
-		}
-
 		c.Remove(cron.EntryID(prod.ID))
 		c.AddJob(prod.Schedule, prod.Task)
 
 		prod, err = registry.Update(prod)
 		if err != nil {
+			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 		logger.Info("prod updated", lager.Data{"prod": prod})
+
+		body, err := json.Marshal(prod.AsJSON())
+		if err != nil {
+			rw.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
 
 		fmt.Fprintf(rw, string(body))
 	})
@@ -96,12 +103,14 @@ func prodDeleteHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 		idString := path.Base(r.URL.String())
 		id, err := strconv.Atoi(idString)
 		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
 		prod, err := registry.ByID(id)
 		if err != nil {
+			rw.WriteHeader(http.StatusNotFound)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
@@ -110,9 +119,12 @@ func prodDeleteHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 
 		err = registry.Remove(prod)
 		if err != nil {
+			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
+
+		rw.WriteHeader(http.StatusNoContent)
 		logger.Info("prod deleted", lager.Data{"prod": prod})
 	})
 }
@@ -120,17 +132,20 @@ func prodDeleteHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 func prodsGetHandler(registry registry.ProdRegistry, logger lager.Logger) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		allProds, err := registry.All()
-		prodsJSON := make([]domain.ProdJSON, len(allProds))
-		for i, _ := range allProds {
-			prodsJSON[i] = allProds[i].AsJSON()
-		}
 		if err != nil {
+			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
+		prodsJSON := make([]domain.ProdJSON, len(allProds))
+		for i, _ := range allProds {
+			prodsJSON[i] = allProds[i].AsJSON()
+		}
+
 		body, err := json.Marshal(prodsJSON)
 		if err != nil {
+			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
@@ -146,12 +161,14 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 
 		err := decoder.Decode(&b)
 		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
 		err = validateProdRequestBody(b)
 		if err != nil {
+			rw.WriteHeader(httpUnprocessableEntity)
 			fmt.Fprintf(rw, "ERROR: %s\n", err)
 			return
 		}
@@ -159,12 +176,14 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 		task := domain.NewTravisTask(b.Token, b.BuildID, logger)
 		prod, err := domain.NewProd(task, b.Schedule)
 		if err != nil {
+			rw.WriteHeader(httpUnprocessableEntity)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
 		err = registry.Add(prod)
 		if err != nil {
+			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
@@ -173,12 +192,14 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 
 		body, err := json.Marshal(prod.AsJSON())
 		if err != nil {
+			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
 		logger.Info("prod created", lager.Data{"prod": prod})
 
+		rw.WriteHeader(http.StatusCreated)
 		fmt.Fprintf(rw, string(body))
 
 	})
