@@ -27,6 +27,11 @@
 		{
 			"ImportPath": "github.com/tedsuo/ifrit",
 			"Rev": "611096055721e35a95e3d1e4e2bc666fae509fcb"
+		},
+		{
+			"ImportPath": "gopkg.in/robfig/cron.v2",
+			"Comment": "v1-11-gbe2e0b0",
+			"Rev": "be2e0b0deed5a68ffee390b4583a13aff8321535"
 		}
 	]
 }
