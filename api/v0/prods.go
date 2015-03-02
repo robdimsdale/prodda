@@ -238,6 +238,14 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 				fmt.Fprintf(rw, "ERROR: %v\n", err)
 				return
 			}
+		case domain.URLGetTaskType:
+			task, err = createURLGetTaskConfig(b, logger)
+			if err != nil {
+				logger.Info("Failed to create URLGet task", lager.Data{"err": err})
+				rw.WriteHeader(http.StatusBadRequest)
+				fmt.Fprintf(rw, "ERROR: %v\n", err)
+				return
+			}
 		default:
 			err := fmt.Errorf("Unrecognized task type: %s", taskType)
 			logger.Info("Failed to create task", lager.Data{"err": err})
@@ -336,4 +344,23 @@ func createNoOpTaskConfig(b prodsCreateUpdateRequestBody, logger lager.Logger) (
 	}
 
 	return domain.NewNoOpTask(sleepDuration, logger), nil
+}
+
+func createURLGetTaskConfig(b prodsCreateUpdateRequestBody, logger lager.Logger) (*domain.URLGetTask, error) {
+	task := b.Task
+	urlRaw := task["url"]
+
+	if urlRaw == nil {
+		return nil, errors.New("URL must be provided")
+	}
+
+	var urlString string
+	switch urlRaw.(type) {
+	case string:
+		urlString = urlRaw.(string)
+	default:
+		return nil, fmt.Errorf("Cannot parse sleep duration: %v", urlRaw)
+	}
+
+	return domain.NewURLGetTask(urlString, logger), nil
 }

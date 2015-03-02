@@ -89,9 +89,36 @@ Re-running a specific travis build can be accomplished by creating a new prod wi
 
 ```
 
+### URL Get
+
+A URL Get task is one which will perform an get request to the specified URL, logging the response and any errors encountered. The URL should be fully-formed, including the protocol.
+
+Running a url-get task can be achieved by creating a prod with the following body:
+
+```
+{
+  "schedule":"15 03 * * *",
+  "task": {
+    "type": "url-get",
+    "url": "http://localhost/"
+  }
+}
+```
+
 ### No-op
 
-A no-op task is one which will log its start and finish points, sleeping for a configurable duration in between. Running one can be achieved by creating a prod with the following body:
+A no-op task is one which will log its start and finish points, sleeping for a configurable duration in between. The duration must comply with the [golang time.ParseDuration specification](http://golang.org/pkg/time/#ParseDuration):
+
+```
+
+ParseDuration parses a duration string.
+A duration string is a possibly signed sequence of decimal numbers,
+each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m".
+Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+
+```
+
+Running a no-op task can be achieved by creating a prod with the following body:
 
 ```
 {
@@ -101,17 +128,6 @@ A no-op task is one which will log its start and finish points, sleeping for a c
     "sleepDuration": "1m"
   }
 }
-```
-
-The duration must comply with the [golang time.ParseDuration specification](http://golang.org/pkg/time/#ParseDuration):
-
-```
-
-ParseDuration parses a duration string.
-A duration string is a possibly signed sequence of decimal numbers,
-each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m".
-Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
-
 ```
 
 ## Supported Golang versions
