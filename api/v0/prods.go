@@ -25,7 +25,7 @@ func prodGetHandler(registry registry.ProdRegistry, logger lager.Logger) http.Ha
 		idString := path.Base(r.URL.String())
 		id, err := strconv.Atoi(idString)
 		if err != nil {
-			logger.Info("Failed to get prod", lager.Data{"err": err})
+			logger.Info("Failed to get prod", lager.Data{"err": err.Error()})
 			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -63,7 +63,7 @@ func prodUpdateHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 		idString := path.Base(r.URL.String())
 		id, err := strconv.Atoi(idString)
 		if err != nil {
-			logger.Info("Failed to update prod", lager.Data{"err": err})
+			logger.Info("Failed to update prod", lager.Data{"err": err.Error()})
 			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -125,7 +125,7 @@ func prodDeleteHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 		idString := path.Base(r.URL.String())
 		id, err := strconv.Atoi(idString)
 		if err != nil {
-			logger.Info("Failed to delete prod", lager.Data{"err": err})
+			logger.Info("Failed to delete prod", lager.Data{"err": err.Error()})
 			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -195,7 +195,7 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 
 		err := decoder.Decode(&b)
 		if err != nil {
-			logger.Info("Failed to create task", lager.Data{"err": err})
+			logger.Info("Failed to create task", lager.Data{"err": err.Error()})
 			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -203,7 +203,7 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 
 		if b.Schedule == "" {
 			err := errors.New("Schedule must be provided")
-			logger.Info("Failed to create task", lager.Data{"err": err})
+			logger.Info("Failed to create task", lager.Data{"err": err.Error()})
 			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -212,7 +212,7 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 		taskTypeRaw := b.Task["type"]
 		if taskTypeRaw == nil {
 			err := errors.New("Task type must be provided")
-			logger.Info("Failed to create task", lager.Data{"err": err})
+			logger.Info("Failed to create task", lager.Data{"err": err.Error()})
 			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -225,7 +225,7 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 		case domain.TravisTaskType:
 			task, err = createTravisTaskConfig(b, logger)
 			if err != nil {
-				logger.Info("Failed to create Travis task", lager.Data{"err": err})
+				logger.Info("Failed to create Travis task", lager.Data{"err": err.Error()})
 				rw.WriteHeader(http.StatusBadRequest)
 				fmt.Fprintf(rw, "ERROR: %v\n", err)
 				return
@@ -233,7 +233,7 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 		case domain.NoOpTaskType:
 			task, err = createNoOpTaskConfig(b, logger)
 			if err != nil {
-				logger.Info("Failed to create NoOp task", lager.Data{"err": err})
+				logger.Info("Failed to create NoOp task", lager.Data{"err": err.Error()})
 				rw.WriteHeader(http.StatusBadRequest)
 				fmt.Fprintf(rw, "ERROR: %v\n", err)
 				return
@@ -241,14 +241,14 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 		case domain.URLGetTaskType:
 			task, err = createURLGetTaskConfig(b, logger)
 			if err != nil {
-				logger.Info("Failed to create URLGet task", lager.Data{"err": err})
+				logger.Info("Failed to create URLGet task", lager.Data{"err": err.Error()})
 				rw.WriteHeader(http.StatusBadRequest)
 				fmt.Fprintf(rw, "ERROR: %v\n", err)
 				return
 			}
 		default:
 			err := fmt.Errorf("Unrecognized task type: %s", taskType)
-			logger.Info("Failed to create task", lager.Data{"err": err})
+			logger.Info("Failed to create task", lager.Data{"err": err.Error()})
 			rw.WriteHeader(httpUnprocessableEntity)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -256,7 +256,7 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 
 		prod, err := domain.NewProd(task, b.Schedule)
 		if err != nil {
-			logger.Info("Failed to create Prod", lager.Data{"err": err})
+			logger.Info("Failed to create Prod", lager.Data{"err": err.Error()})
 			rw.WriteHeader(httpUnprocessableEntity)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
