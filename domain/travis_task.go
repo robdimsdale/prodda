@@ -5,6 +5,10 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
+const (
+	TravisTaskType = "travis-re-run"
+)
+
 type TravisTask struct {
 	client  *client.Travis
 	token   string
@@ -36,7 +40,7 @@ func (t TravisTask) Run() {
 
 func (t TravisTask) AsJSON() TaskJSON {
 	return TravisTaskJSON{
-		Type:    "Travis:",
+		Type:    TravisTaskType,
 		BuildID: t.buildID,
 	}
 }

@@ -23,7 +23,7 @@ All API requests must be made using basic authentication e.g:
 
 ### Prods endpoint
 
-The endpoint for managing prods is found at `/prods/`. The contents of the request body for creates and updates must contain a `schedule` field (the contents of which must be valid cron syntax) and sufficient information to create or update a task, which varies by the type of task.
+The endpoint for managing prods is found at `/prods/`.
 
 #### Get all prods
 
@@ -32,6 +32,8 @@ curl -XGET /prods/
 ```
 
 #### Create new prod
+
+The contents of the request body for creates must contain a `schedule` field (the contents of which must be valid cron syntax) and sufficient information to create or update a task, which varies by the type of task. See [supported tasks](#supported-tasks) for further information.
 
 ```
 curl -XPOST /prods/ -d '{<prod-body-as-json>}'
@@ -55,9 +57,9 @@ curl -XPUT /prods/:id -d '{<updated-prod-body-as-json>}'
 curl -XDELETE /prods/:id
 ```
 
-## Supported tasks
+## <a name="supported-tasks"</a> Supported tasks
 
-Currently prodda supports executing the following tasks:
+Prodda supports multiple task types.
 
 ### Travis builds
 
@@ -75,10 +77,39 @@ Re-running a specific travis build can be accomplished by creating a new prod wi
 
 ```
 {
-  "token":"my-travis-token",
-  "buildID":123456789,
-  "schedule":"15 03 * * *"
+  "schedule":"15 03 * * *",
+  "task": {
+    "type": "travis-re-run",
+    "token":"my-travis-token",
+    "buildID":123456789
+  }
 }
+
+```
+
+### No-op
+
+A no-op task is one which will log its start and finish points, sleeping for a configurable duration in between. Running one can be achieved by creating a prod with the following body:
+
+```
+{
+  "schedule":"15 03 * * *",
+  "task": {
+    "type": "no-op",
+    "sleepDuration": "1m"
+  }
+}
+```
+
+The duration must comply with the [golang time.ParseDuration specification](http://golang.org/pkg/time/#ParseDuration):
+
+```
+
+ParseDuration parses a duration string.
+A duration string is a possibly signed sequence of decimal numbers,
+each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m".
+Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+
 ```
 
 ## Supported Golang versions

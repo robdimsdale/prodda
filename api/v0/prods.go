@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path"
 	"strconv"
+	"time"
 
 	"github.com/mfine30/prodda/domain"
 	"github.com/mfine30/prodda/registry"
@@ -221,10 +222,18 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 
 		var task domain.Task
 		switch taskType {
-		case "travis-re-run":
+		case domain.TravisTaskType:
 			task, err = createTravisTaskConfig(b, logger)
 			if err != nil {
 				logger.Info("Failed to create Travis task", lager.Data{"err": err})
+				rw.WriteHeader(http.StatusBadRequest)
+				fmt.Fprintf(rw, "ERROR: %v\n", err)
+				return
+			}
+		case domain.NoOpTaskType:
+			task, err = createNoOpTaskConfig(b, logger)
+			if err != nil {
+				logger.Info("Failed to create NoOp task", lager.Data{"err": err})
 				rw.WriteHeader(http.StatusBadRequest)
 				fmt.Fprintf(rw, "ERROR: %v\n", err)
 				return
@@ -303,4 +312,28 @@ func createTravisTaskConfig(b prodsCreateUpdateRequestBody, logger lager.Logger)
 	buildID := uint(buildID64)
 
 	return domain.NewTravisTask(token, buildID, logger), nil
+}
+
+func createNoOpTaskConfig(b prodsCreateUpdateRequestBody, logger lager.Logger) (*domain.NoOpTask, error) {
+	task := b.Task
+	sleepDurationRaw := task["sleepDuration"]
+
+	if sleepDurationRaw == nil {
+		return nil, errors.New("Sleep duration must be provided")
+	}
+
+	var sleepDurationString string
+	switch sleepDurationRaw.(type) {
+	case string:
+		sleepDurationString = sleepDurationRaw.(string)
+	default:
+		return nil, fmt.Errorf("Cannot parse sleep duration: %v", sleepDurationRaw)
+	}
+
+	sleepDuration, err := time.ParseDuration(sleepDurationString)
+	if err != nil {
+		return nil, err
+	}
+
+	return domain.NewNoOpTask(sleepDuration, logger), nil
 }
