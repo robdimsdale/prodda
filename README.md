@@ -47,6 +47,8 @@ curl -XGET /prods/:id
 
 #### Update existing prod
 
+The contents of the request body for updates must contain a `schedule` field (the contents of which must be valid cron syntax). Updating attributes of a task is not currently supported - instead the recommended approach is to delete the prod and create a new one with the desired attributes.
+
 ```
 curl -XPUT /prods/:id -d '{<updated-prod-body-as-json>}'
 ```
