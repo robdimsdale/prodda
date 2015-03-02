@@ -15,9 +15,8 @@ import (
 )
 
 type prodsCreateUpdateRequestBody struct {
-	Token    string `json:"token"`
-	BuildID  uint   `json:"buildID"`
-	Schedule string `json:"schedule"`
+	Schedule string                 `json:"schedule"`
+	Task     map[string]interface{} `json:"task"`
 }
 
 func prodGetHandler(registry registry.ProdRegistry, logger lager.Logger) http.Handler {
@@ -25,6 +24,7 @@ func prodGetHandler(registry registry.ProdRegistry, logger lager.Logger) http.Ha
 		idString := path.Base(r.URL.String())
 		id, err := strconv.Atoi(idString)
 		if err != nil {
+			logger.Info("Failed to get prod", lager.Data{"err": err})
 			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -32,13 +32,22 @@ func prodGetHandler(registry registry.ProdRegistry, logger lager.Logger) http.Ha
 
 		prod, err := registry.ByID(id)
 		if err != nil {
-			rw.WriteHeader(http.StatusNotFound)
+			logger.Error("Failed to find existing prod in registry", err)
+			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		if prod == nil {
+			logger.Info("Prod not found in registry", lager.Data{"ID": id})
+			rw.WriteHeader(http.StatusNotFound)
+			fmt.Fprintf(rw, "ERROR: prod not found for ID: %d\n", id)
 			return
 		}
 
 		body, err := json.Marshal(prod.AsJSON())
 		if err != nil {
+			logger.Error("Failed to serialize prod", err, lager.Data{"prod": prod})
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -53,6 +62,7 @@ func prodUpdateHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 		idString := path.Base(r.URL.String())
 		id, err := strconv.Atoi(idString)
 		if err != nil {
+			logger.Info("Failed to update prod", lager.Data{"err": err})
 			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -60,8 +70,16 @@ func prodUpdateHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 
 		prod, err := registry.ByID(id)
 		if err != nil {
-			rw.WriteHeader(http.StatusNotFound)
+			logger.Error("Failed to find existing prod in registry", err)
+			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		if prod == nil {
+			logger.Info("Prod not found in registry", lager.Data{"ID": id})
+			rw.WriteHeader(http.StatusNotFound)
+			fmt.Fprintf(rw, "ERROR: prod not found for ID: %d\n", id)
 			return
 		}
 
@@ -70,6 +88,7 @@ func prodUpdateHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 
 		err = decoder.Decode(&b)
 		if err != nil {
+			logger.Error("Failed to update prod", err, lager.Data{"prod": prod})
 			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -81,6 +100,7 @@ func prodUpdateHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 
 		prod, err = registry.Update(prod)
 		if err != nil {
+			logger.Error("Failed to update prod in registry", err)
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -89,6 +109,7 @@ func prodUpdateHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 
 		body, err := json.Marshal(prod.AsJSON())
 		if err != nil {
+			logger.Error("Failed to serialize prod", err, lager.Data{"prod": prod})
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -103,6 +124,7 @@ func prodDeleteHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 		idString := path.Base(r.URL.String())
 		id, err := strconv.Atoi(idString)
 		if err != nil {
+			logger.Info("Failed to delete prod", lager.Data{"err": err})
 			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -110,8 +132,16 @@ func prodDeleteHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 
 		prod, err := registry.ByID(id)
 		if err != nil {
-			rw.WriteHeader(http.StatusNotFound)
+			logger.Error("Failed to find existing prod in registry", err)
+			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		if prod == nil {
+			logger.Info("Prod not found in registry", lager.Data{"ID": id})
+			rw.WriteHeader(http.StatusNotFound)
+			fmt.Fprintf(rw, "ERROR: prod not found for ID: %d\n", id)
 			return
 		}
 
@@ -119,6 +149,7 @@ func prodDeleteHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 
 		err = registry.Remove(prod)
 		if err != nil {
+			logger.Error("Failed to remove prod from registry", err)
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -133,6 +164,7 @@ func prodsGetHandler(registry registry.ProdRegistry, logger lager.Logger) http.H
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		allProds, err := registry.All()
 		if err != nil {
+			logger.Error("Failed to get prods from registry", err)
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -145,6 +177,7 @@ func prodsGetHandler(registry registry.ProdRegistry, logger lager.Logger) http.H
 
 		body, err := json.Marshal(prodsJSON)
 		if err != nil {
+			logger.Error("Failed to serialize prods", err, lager.Data{"prod": prodsJSON})
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -161,21 +194,52 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 
 		err := decoder.Decode(&b)
 		if err != nil {
+			logger.Info("Failed to create task", lager.Data{"err": err})
 			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
-		err = validateProdRequestBody(b)
-		if err != nil {
-			rw.WriteHeader(httpUnprocessableEntity)
-			fmt.Fprintf(rw, "ERROR: %s\n", err)
+		if b.Schedule == "" {
+			err := errors.New("Schedule must be provided")
+			logger.Info("Failed to create task", lager.Data{"err": err})
+			rw.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
-		task := domain.NewTravisTask(b.Token, b.BuildID, logger)
+		taskTypeRaw := b.Task["type"]
+		if taskTypeRaw == nil {
+			err := errors.New("Task type must be provided")
+			logger.Info("Failed to create task", lager.Data{"err": err})
+			rw.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		taskType := taskTypeRaw.(string)
+
+		var task domain.Task
+		switch taskType {
+		case "travis-re-run":
+			task, err = createTravisTaskConfig(b, logger)
+			if err != nil {
+				logger.Info("Failed to create Travis task", lager.Data{"err": err})
+				rw.WriteHeader(http.StatusBadRequest)
+				fmt.Fprintf(rw, "ERROR: %v\n", err)
+				return
+			}
+		default:
+			err := fmt.Errorf("Unrecognized task type: %s", taskType)
+			logger.Info("Failed to create task", lager.Data{"err": err})
+			rw.WriteHeader(httpUnprocessableEntity)
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
 		prod, err := domain.NewProd(task, b.Schedule)
 		if err != nil {
+			logger.Info("Failed to create Prod", lager.Data{"err": err})
 			rw.WriteHeader(httpUnprocessableEntity)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -183,6 +247,7 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 
 		err = registry.Add(prod)
 		if err != nil {
+			logger.Error("Failed to add prod to registry", err, lager.Data{"prod": prod})
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -192,6 +257,7 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 
 		body, err := json.Marshal(prod.AsJSON())
 		if err != nil {
+			logger.Error("Failed to serialize prod", err, lager.Data{"prod": prod})
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -205,13 +271,36 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 	})
 }
 
-func validateProdRequestBody(b prodsCreateUpdateRequestBody) error {
-	if b.Token == "" {
-		return errors.New("Token must be provided")
+func createTravisTaskConfig(b prodsCreateUpdateRequestBody, logger lager.Logger) (*domain.TravisTask, error) {
+	task := b.Task
+	tokenRaw := task["token"]
+	buildIDRaw := task["buildID"]
+
+	if tokenRaw == nil {
+		return nil, errors.New("Token must be provided")
 	}
 
-	if b.BuildID == 0 {
-		return errors.New("BuildID must be provided")
+	if buildIDRaw == nil {
+		return nil, errors.New("BuildID must be provided")
 	}
-	return nil
+
+	var token string
+	switch tokenRaw.(type) {
+	case string:
+		token = tokenRaw.(string)
+	default:
+		return nil, fmt.Errorf("Cannot parse token: %v", tokenRaw)
+	}
+
+	var buildID64 float64
+	switch buildIDRaw.(type) {
+	case float64:
+		buildID64 = buildIDRaw.(float64)
+	default:
+		return nil, fmt.Errorf("Cannot parse buildID: %v", buildIDRaw)
+	}
+
+	buildID := uint(buildID64)
+
+	return domain.NewTravisTask(token, buildID, logger), nil
 }

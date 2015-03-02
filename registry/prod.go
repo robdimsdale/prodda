@@ -1,20 +1,35 @@
 package registry
 
 import (
-	"fmt"
 	"math/rand"
 
 	"github.com/mfine30/prodda/domain"
 )
 
 type ProdRegistry interface {
+
+	// All returns all the prods known to the registry.
+	// If no prods exist, but the interrogation was otherwise successful,
+	// the returned error will be nil.
 	All() ([]*domain.Prod, error)
 
-	// Add adds the prod to current prods in memory
-	// Add is responsible for assiging a unique ID to the provided prod
+	// Add adds the prod to current prods in memory.
+	// Add is responsible for assiging a unique ID to the provided prod.
 	Add(p *domain.Prod) error
+
+	// ByID will return error if there is an error retriving a prod which exists.
+	// If the execution completes without error, and prod is not found,
+	// both the returned error and prod will be nil.
 	ByID(ID int) (*domain.Prod, error)
+
+	// Update will return an error if the prod does not exist.
+	// Callers are expected to first verify that the prod exists,
+	// e.g. via ByID.
 	Update(prod *domain.Prod) (*domain.Prod, error)
+
+	// Remove will return an error if the prod does not exist.
+	// Callers are expected to first determine if the prod exists,
+	// e.g. via ByID.
 	Remove(prod *domain.Prod) error
 }
 
@@ -32,8 +47,6 @@ func (r InMemoryProdRegistry) All() ([]*domain.Prod, error) {
 	return r.prods, nil
 }
 
-// Add adds the prod to current prods in memory
-// Add is responsible for assiging a unique ID to the provided prod
 func (r *InMemoryProdRegistry) Add(p *domain.Prod) error {
 
 	newID := rand.Int()
@@ -48,7 +61,6 @@ func (r *InMemoryProdRegistry) Add(p *domain.Prod) error {
 	return nil
 }
 
-// ByID is guaranteed to return non-nil arg0 if error is nil
 func (r InMemoryProdRegistry) ByID(ID int) (*domain.Prod, error) {
 	_, found, err := r.byID(ID)
 	if err != nil {
@@ -68,8 +80,7 @@ func (r InMemoryProdRegistry) byID(ID int) (int, *domain.Prod, error) {
 			return i, p, nil
 		}
 	}
-	return 0, nil, fmt.Errorf("No prod found for id :%d", ID)
-
+	return 0, nil, nil
 }
 
 func (r *InMemoryProdRegistry) Update(prod *domain.Prod) (*domain.Prod, error) {
