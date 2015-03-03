@@ -29,7 +29,7 @@ func NewNoOpTask(sleepDuration time.Duration, logger lager.Logger) *NoOpTask {
 
 func (t NoOpTask) Run() {
 	t.logger.Info("Task started", lager.Data{"task": t.AsJSON()})
-	<-time.After(t.sleepDuration)
+	time.Sleep(t.sleepDuration)
 
 	t.logger.Info("Task completed", lager.Data{"task": t.AsJSON()})
 	return
