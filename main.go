@@ -33,10 +33,11 @@ func main() {
 	username = os.Getenv("USERNAME")
 	password = os.Getenv("PASSWORD")
 
+	logger.Info("Initializing registry")
 	prodRegistry := registry.NewInMemoryProdRegistry()
-	c := cron.New()
-	logger.Info("cron created.")
+	logger.Info("Initializing registry complete")
 
+	c := cron.New()
 	handler := api.NewHandler(
 		logger,
 		username,
@@ -45,8 +46,8 @@ func main() {
 		c)
 
 	group := grouper.NewParallel(os.Kill, grouper.Members{
-		grouper.Member{"api", api.NewRunner(port, handler, logger)},
 		grouper.Member{"schedule", schedule.NewRunner(c, logger)},
+		grouper.Member{"api", api.NewRunner(port, handler, logger)},
 	})
 	process := ifrit.Invoke(group)
 

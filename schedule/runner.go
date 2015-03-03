@@ -21,7 +21,7 @@ func NewRunner(c *cron.Cron, logger lager.Logger) Runner {
 
 func (a Runner) Run(signals <-chan os.Signal, ready chan<- struct{}) error {
 	a.c.Start()
-	a.logger.Info("cron started.")
+	a.logger.Info("Scheduler started")
 
 	close(ready)
 

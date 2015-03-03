@@ -28,7 +28,7 @@ func (a Runner) Run(signals <-chan os.Signal, ready chan<- struct{}) error {
 	if err != nil {
 		return err
 	} else {
-		a.logger.Info(fmt.Sprintf("Prodda api listening on port %d", a.port))
+		a.logger.Info(fmt.Sprintf("API listening on port %d", a.port))
 	}
 
 	errChan := make(chan error)
