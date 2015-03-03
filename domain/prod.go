@@ -3,6 +3,8 @@ package domain
 import (
 	"fmt"
 	"time"
+
+	"gopkg.in/robfig/cron.v2"
 )
 
 const (
@@ -13,6 +15,7 @@ type Prod struct {
 	ID       int
 	Task     Task
 	Schedule string
+	EntryID  cron.EntryID
 }
 
 type ProdJSON struct {
@@ -22,10 +25,11 @@ type ProdJSON struct {
 }
 
 // NewProd creates a prod
-func NewProd(task Task, schedule string) (*Prod, error) {
+func NewProd(task Task, schedule string, entryID cron.EntryID) (*Prod, error) {
 	return &Prod{
 		Task:     task,
 		Schedule: schedule,
+		EntryID:  entryID,
 	}, nil
 }
 

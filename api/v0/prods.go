@@ -96,8 +96,18 @@ func prodUpdateHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 		}
 
 		prod.Schedule = b.Schedule
-		c.Remove(cron.EntryID(prod.ID))
-		c.AddJob(prod.Schedule, prod.Task)
+		c.Remove(prod.EntryID)
+		entryID, err := c.AddJob(prod.Schedule, prod.Task)
+		if err != nil {
+			logger.Error(
+				"Failed to schedule prod",
+				err,
+				lager.Data{"schedule": prod.Schedule, "task": prod.Task.AsJSON()})
+			rw.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+		prod.EntryID = entryID
 
 		prod, err = registry.Update(prod)
 		if err != nil {
@@ -146,7 +156,7 @@ func prodDeleteHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 			return
 		}
 
-		c.Remove(cron.EntryID(prod.ID))
+		c.Remove(prod.EntryID)
 
 		err = registry.Remove(prod)
 		if err != nil {
@@ -254,7 +264,18 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 			return
 		}
 
-		prod, err := domain.NewProd(task, b.Schedule)
+		entryID, err := c.AddJob(b.Schedule, task)
+		if err != nil {
+			logger.Error(
+				"Failed to schedule prod",
+				err,
+				lager.Data{"schedule": b.Schedule, "task": task.AsJSON()})
+			rw.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
+
+		prod, err := domain.NewProd(task, b.Schedule, entryID)
 		if err != nil {
 			logger.Info("Failed to create Prod", lager.Data{"err": err.Error()})
 			rw.WriteHeader(httpUnprocessableEntity)
@@ -269,8 +290,6 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
-
-		c.AddJob(prod.Schedule, prod.Task)
 
 		body, err := json.Marshal(prod.AsJSON())
 		if err != nil {
