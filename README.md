@@ -1,10 +1,10 @@
 # prodda [![Build Status](https://travis-ci.org/mfine30/prodda.svg?branch=master)](https://travis-ci.org/mfine30/prodda)
 
-Prods things on schedule.
+Prods tasks on schedule.
 
 ## Overview
 
-Prods are scheduled tasks. Scheduling is defined using the extended cron syntax:
+Tasks are scheduled using the extended cron syntax:
 
 - Full crontab specs e.g. `"* * * * * ?"`
 - Descriptors, e.g. `"@midnight", "@every 1h30m"`
@@ -13,7 +13,7 @@ Prods are scheduled tasks. Scheduling is defined using the extended cron syntax:
 
 ### Root Endpoint
 
-The root endpoint for the API is at `/api/v0`. All endpoints are nested below this path,
+The root endpoint for the API is at `/api/v0`. All endpoints are nested below this path.
 
 ### Authentication and authorization
 
@@ -21,42 +21,42 @@ All API requests must be made using basic authentication e.g:
 
 `curl https://username:password@127.0.0.1/api/v0/`
 
-### Prods endpoint
+### Tasks endpoint
 
-The endpoint for managing prods is found at `/prods/`.
+The endpoint for managing tasks is found at `/tasks/`.
 
-#### Get all prods
+#### Get all tasks
 
 ```
-curl -XGET /prods/
+curl -XGET /tasks/
 ```
 
-#### Create new prod
+#### Create new task
 
 The contents of the request body for creates must contain a `schedule` field (the contents of which must be valid cron syntax) and sufficient information to create or update a task, which varies by the type of task. See [supported tasks](#supported-tasks) for further information.
 
 ```
-curl -XPOST /prods/ -d '{<prod-body-as-json>}'
+curl -XPOST /tasks/ -d '{<task-body-as-json>}'
 ```
 
-#### Get specific prod
+#### Get specific task
 
 ```
-curl -XGET /prods/:id
+curl -XGET /tasks/:id
 ```
 
-#### Update existing prod
+#### Update existing task
 
-The contents of the request body for updates must contain a `schedule` field (the contents of which must be valid cron syntax). Updating attributes of a task is not currently supported - instead the recommended approach is to delete the prod and create a new one with the desired attributes.
-
-```
-curl -XPUT /prods/:id -d '{<updated-prod-body-as-json>}'
-```
-
-#### Delete existing prod
+The contents of the request body for updates must contain a `schedule` field (the contents of which must be valid cron syntax). Updating attributes of a task is not currently supported - instead the recommended approach is to delete the task and create a new one with the desired attributes.
 
 ```
-curl -XDELETE /prods/:id
+curl -XPUT /tasks/:id -d '{<updated-task-body-as-json>}'
+```
+
+#### Delete existing task
+
+```
+curl -XDELETE /tasks/:id
 ```
 
 ## <a name="supported-tasks"</a> Supported tasks
@@ -75,7 +75,7 @@ More detailed information can be found on the official [travis blog](http://blog
 
 #### Re-running an existing travis build
 
-Re-running a specific travis build can be accomplished by creating a new prod with the following body:
+Re-running a specific travis build can be accomplished by creating a new task with the following body:
 
 ```
 {
@@ -93,7 +93,7 @@ Re-running a specific travis build can be accomplished by creating a new prod wi
 
 A URL Get task is one which will perform an get request to the specified URL, logging the response and any errors encountered. The URL should be fully-formed, including the protocol.
 
-Running a url-get task can be achieved by creating a prod with the following body:
+Running a url-get task can be achieved by creating a task with the following body:
 
 ```
 {
@@ -109,16 +109,12 @@ Running a url-get task can be achieved by creating a prod with the following bod
 
 A no-op task is one which will log its start and finish points, sleeping for a configurable duration in between. The duration must comply with the [golang time.ParseDuration specification](http://golang.org/pkg/time/#ParseDuration):
 
-```
-
-ParseDuration parses a duration string.
-A duration string is a possibly signed sequence of decimal numbers,
+- ParseDuration parses a duration string.
+- A duration string is a possibly signed sequence of decimal numbers,
 each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m".
-Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+- Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
 
-```
-
-Running a no-op task can be achieved by creating a prod with the following body:
+Running a no-op task can be achieved by creating a task with the following body:
 
 ```
 {

@@ -21,7 +21,7 @@ var _ = Describe("Logger", func() {
 	var fakeLogger *fakes.FakeLogger
 
 	BeforeEach(func() {
-		dummyRequest, err = http.NewRequest("GET", "/api/v0/prods", nil)
+		dummyRequest, err = http.NewRequest("GET", "/api/v0/tasks", nil)
 		Expect(err).NotTo(HaveOccurred())
 		dummyRequest.Header.Add("Authorization", "some auth")
 

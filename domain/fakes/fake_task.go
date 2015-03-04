@@ -8,6 +8,31 @@ import (
 )
 
 type FakeTask struct {
+	IDStub        func() int
+	iDMutex       sync.RWMutex
+	iDArgsForCall []struct{}
+	iDReturns struct {
+		result1 int
+	}
+	SetIDStub        func(id int) error
+	setIDMutex       sync.RWMutex
+	setIDArgsForCall []struct {
+		id int
+	}
+	setIDReturns struct {
+		result1 error
+	}
+	ScheduleStub        func() string
+	scheduleMutex       sync.RWMutex
+	scheduleArgsForCall []struct{}
+	scheduleReturns struct {
+		result1 string
+	}
+	SetScheduleStub        func(schedule string)
+	setScheduleMutex       sync.RWMutex
+	setScheduleArgsForCall []struct {
+		schedule string
+	}
 	RunStub        func()
 	runMutex       sync.RWMutex
 	runArgsForCall []struct{}
@@ -17,6 +42,109 @@ type FakeTask struct {
 	asJSONReturns struct {
 		result1 domain.TaskJSON
 	}
+}
+
+func (fake *FakeTask) ID() int {
+	fake.iDMutex.Lock()
+	fake.iDArgsForCall = append(fake.iDArgsForCall, struct{}{})
+	fake.iDMutex.Unlock()
+	if fake.IDStub != nil {
+		return fake.IDStub()
+	} else {
+		return fake.iDReturns.result1
+	}
+}
+
+func (fake *FakeTask) IDCallCount() int {
+	fake.iDMutex.RLock()
+	defer fake.iDMutex.RUnlock()
+	return len(fake.iDArgsForCall)
+}
+
+func (fake *FakeTask) IDReturns(result1 int) {
+	fake.IDStub = nil
+	fake.iDReturns = struct {
+		result1 int
+	}{result1}
+}
+
+func (fake *FakeTask) SetID(id int) error {
+	fake.setIDMutex.Lock()
+	fake.setIDArgsForCall = append(fake.setIDArgsForCall, struct {
+		id int
+	}{id})
+	fake.setIDMutex.Unlock()
+	if fake.SetIDStub != nil {
+		return fake.SetIDStub(id)
+	} else {
+		return fake.setIDReturns.result1
+	}
+}
+
+func (fake *FakeTask) SetIDCallCount() int {
+	fake.setIDMutex.RLock()
+	defer fake.setIDMutex.RUnlock()
+	return len(fake.setIDArgsForCall)
+}
+
+func (fake *FakeTask) SetIDArgsForCall(i int) int {
+	fake.setIDMutex.RLock()
+	defer fake.setIDMutex.RUnlock()
+	return fake.setIDArgsForCall[i].id
+}
+
+func (fake *FakeTask) SetIDReturns(result1 error) {
+	fake.SetIDStub = nil
+	fake.setIDReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeTask) Schedule() string {
+	fake.scheduleMutex.Lock()
+	fake.scheduleArgsForCall = append(fake.scheduleArgsForCall, struct{}{})
+	fake.scheduleMutex.Unlock()
+	if fake.ScheduleStub != nil {
+		return fake.ScheduleStub()
+	} else {
+		return fake.scheduleReturns.result1
+	}
+}
+
+func (fake *FakeTask) ScheduleCallCount() int {
+	fake.scheduleMutex.RLock()
+	defer fake.scheduleMutex.RUnlock()
+	return len(fake.scheduleArgsForCall)
+}
+
+func (fake *FakeTask) ScheduleReturns(result1 string) {
+	fake.ScheduleStub = nil
+	fake.scheduleReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeTask) SetSchedule(schedule string) {
+	fake.setScheduleMutex.Lock()
+	fake.setScheduleArgsForCall = append(fake.setScheduleArgsForCall, struct {
+		schedule string
+	}{schedule})
+	fake.setScheduleMutex.Unlock()
+	if fake.SetScheduleStub != nil {
+		fake.SetScheduleStub(schedule)
+	}
+}
+
+func (fake *FakeTask) SetScheduleCallCount() int {
+	fake.setScheduleMutex.RLock()
+	defer fake.setScheduleMutex.RUnlock()
+	return len(fake.setScheduleArgsForCall)
+}
+
+func (fake *FakeTask) SetScheduleArgsForCall(i int) string {
+	fake.setScheduleMutex.RLock()
+	defer fake.setScheduleMutex.RUnlock()
+	return fake.setScheduleArgsForCall[i].schedule
 }
 
 func (fake *FakeTask) Run() {

@@ -11,20 +11,24 @@ const (
 )
 
 type NoOpTask struct {
+	BaseTask
 	sleepDuration time.Duration
-	logger        lager.Logger
 }
 
 type NoOpTaskJSON struct {
-	Type          string        `json:"type"`
+	BaseTaskJson
 	SleepDuration time.Duration `json:"sleepDuration"`
 }
 
-func NewNoOpTask(sleepDuration time.Duration, logger lager.Logger) *NoOpTask {
-	return &NoOpTask{
+func NewNoOpTask(schedule string, sleepDuration time.Duration, logger lager.Logger) *NoOpTask {
+	t := &NoOpTask{
 		sleepDuration: sleepDuration,
-		logger:        logger,
 	}
+
+	t.logger = logger
+	t.SetSchedule(schedule)
+
+	return t
 }
 
 func (t NoOpTask) Run() {
@@ -36,8 +40,14 @@ func (t NoOpTask) Run() {
 }
 
 func (t NoOpTask) AsJSON() TaskJSON {
-	return NoOpTaskJSON{
-		Type:          NoOpTaskType,
+	asJson := NoOpTaskJSON{
 		SleepDuration: t.sleepDuration,
 	}
+
+	asJson.Type = NoOpTaskType
+	asJson.ID = t.ID()
+	asJson.Schedule = t.Schedule()
+	asJson.EntryID = t.EntryID()
+
+	return asJson
 }

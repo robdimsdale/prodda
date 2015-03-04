@@ -10,24 +10,28 @@ const (
 )
 
 type TravisTask struct {
+	BaseTask
 	client  *client.Travis
 	token   string
 	buildID uint
-	logger  lager.Logger
 }
 
 type TravisTaskJSON struct {
-	Type    string `json:"type"`
-	BuildID uint   `json:"buildID"`
+	BaseTaskJson
+	BuildID uint `json:"buildID"`
 }
 
-func NewTravisTask(token string, buildID uint, logger lager.Logger) *TravisTask {
-	return &TravisTask{
+func NewTravisTask(schedule, token string, buildID uint, logger lager.Logger) *TravisTask {
+	t := &TravisTask{
 		client:  client.NewTravisClient("https://api.travis-ci.org"),
 		token:   token,
 		buildID: buildID,
-		logger:  logger,
 	}
+
+	t.logger = logger
+	t.SetSchedule(schedule)
+
+	return t
 }
 
 func (t TravisTask) Run() {
@@ -39,8 +43,14 @@ func (t TravisTask) Run() {
 }
 
 func (t TravisTask) AsJSON() TaskJSON {
-	return TravisTaskJSON{
-		Type:    TravisTaskType,
+	asJson := TravisTaskJSON{
 		BuildID: t.buildID,
 	}
+
+	asJson.Type = TravisTaskType
+	asJson.ID = t.ID()
+	asJson.Schedule = t.Schedule()
+	asJson.EntryID = t.EntryID()
+
+	return asJson
 }

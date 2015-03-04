@@ -17,13 +17,13 @@ var HomeHandleFunc = homeHandleFunc
 func NewHandler(
 	logger lager.Logger,
 	username, password string,
-	prodRegistry registry.ProdRegistry,
+	taskRegistry registry.TaskRegistry,
 	c *cron.Cron) http.Handler {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandleFunc)
 	api := r.PathPrefix("/api").Subrouter()
-	v0.NewSubrouter(api, prodRegistry, c, logger)
+	v0.NewSubrouter(api, taskRegistry, c, logger)
 
 	return middleware.Chain{
 		middleware.NewPanicRecovery(logger),

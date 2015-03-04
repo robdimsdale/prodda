@@ -34,7 +34,7 @@ func main() {
 	password = os.Getenv("PASSWORD")
 
 	logger.Info("Initializing registry")
-	prodRegistry := registry.NewInMemoryProdRegistry()
+	taskRegistry := registry.NewInMemoryTaskRegistry()
 	logger.Info("Initializing registry complete")
 
 	c := cron.New()
@@ -42,7 +42,7 @@ func main() {
 		logger,
 		username,
 		password,
-		prodRegistry,
+		taskRegistry,
 		c)
 
 	group := grouper.NewParallel(os.Kill, grouper.Members{

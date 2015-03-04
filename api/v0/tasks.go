@@ -15,40 +15,40 @@ import (
 	"gopkg.in/robfig/cron.v2"
 )
 
-type prodsCreateUpdateRequestBody struct {
+type tasksCreateUpdateRequestBody struct {
 	Schedule string                 `json:"schedule"`
 	Task     map[string]interface{} `json:"task"`
 }
 
-func prodGetHandler(registry registry.ProdRegistry, logger lager.Logger) http.Handler {
+func taskGetHandler(registry registry.TaskRegistry, logger lager.Logger) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		idString := path.Base(r.URL.String())
 		id, err := strconv.Atoi(idString)
 		if err != nil {
-			logger.Info("Failed to get prod", lager.Data{"err": err.Error()})
+			logger.Info("Failed to get task", lager.Data{"err": err.Error()})
 			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
-		prod, err := registry.ByID(id)
+		task, err := registry.ByID(id)
 		if err != nil {
-			logger.Error("Failed to find existing prod in registry", err)
+			logger.Error("Failed to find existing task in registry", err)
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
-		if prod == nil {
-			logger.Info("Prod not found in registry", lager.Data{"ID": id})
+		if task == nil {
+			logger.Info("Task not found in registry", lager.Data{"ID": id})
 			rw.WriteHeader(http.StatusNotFound)
-			fmt.Fprintf(rw, "ERROR: prod not found for ID: %d\n", id)
+			fmt.Fprintf(rw, "ERROR: task not found for ID: %d\n", id)
 			return
 		}
 
-		body, err := json.Marshal(prod.AsJSON())
+		body, err := json.Marshal(task.AsJSON())
 		if err != nil {
-			logger.Error("Failed to serialize prod", err, lager.Data{"prod": prod})
+			logger.Error("Failed to serialize task", err, lager.Data{"task": task.AsJSON()})
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -58,69 +58,69 @@ func prodGetHandler(registry registry.ProdRegistry, logger lager.Logger) http.Ha
 	})
 }
 
-func prodUpdateHandler(registry registry.ProdRegistry, logger lager.Logger, c *cron.Cron) http.Handler {
+func taskUpdateHandler(registry registry.TaskRegistry, logger lager.Logger, c *cron.Cron) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		idString := path.Base(r.URL.String())
 		id, err := strconv.Atoi(idString)
 		if err != nil {
-			logger.Info("Failed to update prod", lager.Data{"err": err.Error()})
+			logger.Info("Failed to update task", lager.Data{"err": err.Error()})
 			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
-		prod, err := registry.ByID(id)
+		task, err := registry.ByID(id)
 		if err != nil {
-			logger.Error("Failed to find existing prod in registry", err)
+			logger.Error("Failed to find existing task in registry", err)
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
-		if prod == nil {
-			logger.Info("Prod not found in registry", lager.Data{"ID": id})
+		if task == nil {
+			logger.Info("Task not found in registry", lager.Data{"ID": id})
 			rw.WriteHeader(http.StatusNotFound)
-			fmt.Fprintf(rw, "ERROR: prod not found for ID: %d\n", id)
+			fmt.Fprintf(rw, "ERROR: task not found for ID: %d\n", id)
 			return
 		}
 
 		decoder := json.NewDecoder(r.Body)
-		var b prodsCreateUpdateRequestBody
+		var b tasksCreateUpdateRequestBody
 
 		err = decoder.Decode(&b)
 		if err != nil {
-			logger.Error("Failed to update prod", err, lager.Data{"prod": prod})
+			logger.Error("Failed to update task", err, lager.Data{"task": task.AsJSON()})
 			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
-		prod.Schedule = b.Schedule
-		c.Remove(prod.EntryID)
-		entryID, err := c.AddJob(prod.Schedule, prod.Task)
+		task.SetSchedule(b.Schedule)
+		c.Remove(task.EntryID())
+		entryID, err := c.AddJob(task.Schedule(), task)
 		if err != nil {
 			logger.Error(
-				"Failed to schedule prod",
+				"Failed to schedule task",
 				err,
-				lager.Data{"schedule": prod.Schedule, "task": prod.Task.AsJSON()})
+				lager.Data{"task": task.AsJSON()})
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
-		prod.EntryID = entryID
+		task.SetEntryID(entryID)
 
-		prod, err = registry.Update(prod)
+		task, err = registry.Update(task)
 		if err != nil {
-			logger.Error("Failed to update prod in registry", err)
+			logger.Error("Failed to update task in registry", err)
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
-		logger.Info("prod updated", lager.Data{"prod": prod})
+		logger.Info("task updated", lager.Data{"task": task.AsJSON()})
 
-		body, err := json.Marshal(prod.AsJSON())
+		body, err := json.Marshal(task.AsJSON())
 		if err != nil {
-			logger.Error("Failed to serialize prod", err, lager.Data{"prod": prod})
+			logger.Error("Failed to serialize task", err, lager.Data{"task": task.AsJSON()})
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -130,65 +130,65 @@ func prodUpdateHandler(registry registry.ProdRegistry, logger lager.Logger, c *c
 	})
 }
 
-func prodDeleteHandler(registry registry.ProdRegistry, logger lager.Logger, c *cron.Cron) http.Handler {
+func taskDeleteHandler(registry registry.TaskRegistry, logger lager.Logger, c *cron.Cron) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		idString := path.Base(r.URL.String())
 		id, err := strconv.Atoi(idString)
 		if err != nil {
-			logger.Info("Failed to delete prod", lager.Data{"err": err.Error()})
+			logger.Info("Failed to delete task", lager.Data{"err": err.Error()})
 			rw.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
-		prod, err := registry.ByID(id)
+		task, err := registry.ByID(id)
 		if err != nil {
-			logger.Error("Failed to find existing prod in registry", err)
+			logger.Error("Failed to find existing task in registry", err)
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
-		if prod == nil {
-			logger.Info("Prod not found in registry", lager.Data{"ID": id})
+		if task == nil {
+			logger.Info("Task not found in registry", lager.Data{"ID": id})
 			rw.WriteHeader(http.StatusNotFound)
-			fmt.Fprintf(rw, "ERROR: prod not found for ID: %d\n", id)
+			fmt.Fprintf(rw, "ERROR: task not found for ID: %d\n", id)
 			return
 		}
 
-		c.Remove(prod.EntryID)
+		c.Remove(task.EntryID())
 
-		err = registry.Remove(prod)
+		err = registry.Remove(task)
 		if err != nil {
-			logger.Error("Failed to remove prod from registry", err)
+			logger.Error("Failed to remove task from registry", err)
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
 		rw.WriteHeader(http.StatusNoContent)
-		logger.Info("prod deleted", lager.Data{"prod": prod})
+		logger.Info("task deleted", lager.Data{"task": task.AsJSON()})
 	})
 }
 
-func prodsGetHandler(registry registry.ProdRegistry, logger lager.Logger) http.Handler {
+func tasksGetHandler(registry registry.TaskRegistry, logger lager.Logger) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		allProds, err := registry.All()
+		allTasks, err := registry.All()
 		if err != nil {
-			logger.Error("Failed to get prods from registry", err)
+			logger.Error("Failed to get tasks from registry", err)
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
-		prodsJSON := make([]domain.ProdJSON, len(allProds))
-		for i, _ := range allProds {
-			prodsJSON[i] = allProds[i].AsJSON()
+		tasksJSON := make([]domain.TaskJSON, len(allTasks))
+		for i, _ := range allTasks {
+			tasksJSON[i] = allTasks[i].AsJSON()
 		}
 
-		body, err := json.Marshal(prodsJSON)
+		body, err := json.Marshal(tasksJSON)
 		if err != nil {
-			logger.Error("Failed to serialize prods", err, lager.Data{"prod": prodsJSON})
+			logger.Error("Failed to serialize tasks", err, lager.Data{"tasks": tasksJSON})
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
@@ -198,10 +198,10 @@ func prodsGetHandler(registry registry.ProdRegistry, logger lager.Logger) http.H
 	})
 }
 
-func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *cron.Cron) http.Handler {
+func tasksCreateHandler(registry registry.TaskRegistry, logger lager.Logger, c *cron.Cron) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
-		var b prodsCreateUpdateRequestBody
+		var b tasksCreateUpdateRequestBody
 
 		err := decoder.Decode(&b)
 		if err != nil {
@@ -267,39 +267,32 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 		entryID, err := c.AddJob(b.Schedule, task)
 		if err != nil {
 			logger.Error(
-				"Failed to schedule prod",
+				"Failed to schedule task",
 				err,
 				lager.Data{"schedule": b.Schedule, "task": task.AsJSON()})
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
+		task.SetEntryID(entryID)
 
-		prod, err := domain.NewProd(task, b.Schedule, entryID)
+		err = registry.Add(task)
 		if err != nil {
-			logger.Info("Failed to create Prod", lager.Data{"err": err.Error()})
-			rw.WriteHeader(httpUnprocessableEntity)
-			fmt.Fprintf(rw, "ERROR: %v\n", err)
-			return
-		}
-
-		err = registry.Add(prod)
-		if err != nil {
-			logger.Error("Failed to add prod to registry", err, lager.Data{"prod": prod})
+			logger.Error("Failed to add task to registry", err, lager.Data{"task": task.AsJSON()})
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
-		body, err := json.Marshal(prod.AsJSON())
+		body, err := json.Marshal(task.AsJSON())
 		if err != nil {
-			logger.Error("Failed to serialize prod", err, lager.Data{"prod": prod})
+			logger.Error("Failed to serialize task", err, lager.Data{"task": task.AsJSON()})
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
 			return
 		}
 
-		logger.Info("prod created", lager.Data{"prod": prod})
+		logger.Info("Task created", lager.Data{"task": task.AsJSON()})
 
 		rw.WriteHeader(http.StatusCreated)
 		fmt.Fprintf(rw, string(body))
@@ -307,7 +300,7 @@ func prodsCreateHandler(registry registry.ProdRegistry, logger lager.Logger, c *
 	})
 }
 
-func createTravisTaskConfig(b prodsCreateUpdateRequestBody, logger lager.Logger) (*domain.TravisTask, error) {
+func createTravisTaskConfig(b tasksCreateUpdateRequestBody, logger lager.Logger) (*domain.TravisTask, error) {
 	task := b.Task
 	tokenRaw := task["token"]
 	buildIDRaw := task["buildID"]
@@ -338,10 +331,10 @@ func createTravisTaskConfig(b prodsCreateUpdateRequestBody, logger lager.Logger)
 
 	buildID := uint(buildID64)
 
-	return domain.NewTravisTask(token, buildID, logger), nil
+	return domain.NewTravisTask(b.Schedule, token, buildID, logger), nil
 }
 
-func createNoOpTaskConfig(b prodsCreateUpdateRequestBody, logger lager.Logger) (*domain.NoOpTask, error) {
+func createNoOpTaskConfig(b tasksCreateUpdateRequestBody, logger lager.Logger) (*domain.NoOpTask, error) {
 	task := b.Task
 	sleepDurationRaw := task["sleepDuration"]
 
@@ -362,10 +355,10 @@ func createNoOpTaskConfig(b prodsCreateUpdateRequestBody, logger lager.Logger) (
 		return nil, err
 	}
 
-	return domain.NewNoOpTask(sleepDuration, logger), nil
+	return domain.NewNoOpTask(b.Schedule, sleepDuration, logger), nil
 }
 
-func createURLGetTaskConfig(b prodsCreateUpdateRequestBody, logger lager.Logger) (*domain.URLGetTask, error) {
+func createURLGetTaskConfig(b tasksCreateUpdateRequestBody, logger lager.Logger) (*domain.URLGetTask, error) {
 	task := b.Task
 	urlRaw := task["url"]
 
@@ -381,5 +374,5 @@ func createURLGetTaskConfig(b prodsCreateUpdateRequestBody, logger lager.Logger)
 		return nil, fmt.Errorf("Cannot parse sleep duration: %v", urlRaw)
 	}
 
-	return domain.NewURLGetTask(urlString, logger), nil
+	return domain.NewURLGetTask(b.Schedule, urlString, logger), nil
 }

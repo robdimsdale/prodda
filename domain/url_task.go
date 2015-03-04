@@ -12,20 +12,24 @@ const (
 )
 
 type URLGetTask struct {
-	url    string
-	logger lager.Logger
+	BaseTask
+	url string
 }
 
 type URLGetTaskJSON struct {
-	Type string `json:"type"`
-	URL  string `json:"url"`
+	BaseTaskJson
+	URL string `json:"url"`
 }
 
-func NewURLGetTask(url string, logger lager.Logger) *URLGetTask {
-	return &URLGetTask{
-		url:    url,
-		logger: logger,
+func NewURLGetTask(schedule, url string, logger lager.Logger) *URLGetTask {
+	t := &URLGetTask{
+		url: url,
 	}
+
+	t.SetSchedule(schedule)
+	t.logger = logger
+
+	return t
 }
 
 func (t URLGetTask) Run() {
@@ -90,8 +94,14 @@ func (t URLGetTask) execute() {
 }
 
 func (t URLGetTask) AsJSON() TaskJSON {
-	return URLGetTaskJSON{
-		Type: URLGetTaskType,
-		URL:  t.url,
+	asJson := URLGetTaskJSON{
+		URL: t.url,
 	}
+
+	asJson.Type = URLGetTaskType
+	asJson.ID = t.ID()
+	asJson.Schedule = t.Schedule()
+	asJson.EntryID = t.EntryID()
+
+	return asJson
 }

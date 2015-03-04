@@ -12,6 +12,7 @@ import (
 
 var _ = Describe("No-op task", func() {
 	var testLogger *lagertest.TestLogger
+	schedule := ""
 
 	BeforeEach(func() {
 		testLogger = lagertest.NewTestLogger("no-op task test")
@@ -19,7 +20,7 @@ var _ = Describe("No-op task", func() {
 
 	It("logs and sleeps", func() {
 		sleepDuration := 50 * time.Millisecond
-		task := domain.NewNoOpTask(sleepDuration, testLogger)
+		task := domain.NewNoOpTask(schedule, sleepDuration, testLogger)
 
 		startTime := time.Now()
 		task.Run()

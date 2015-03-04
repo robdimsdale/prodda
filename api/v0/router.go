@@ -9,18 +9,18 @@ import (
 
 func NewSubrouter(
 	parent *mux.Router,
-	prodRegistry registry.ProdRegistry,
+	taskRegistry registry.TaskRegistry,
 	c *cron.Cron,
 	logger lager.Logger) *mux.Router {
 
 	r := parent.PathPrefix("/v0").Subrouter()
 
-	prods := r.PathPrefix("/prods").Subrouter()
-	prods.Handle("/", prodsGetHandler(prodRegistry, logger)).Methods("GET")
-	prods.Handle("/", prodsCreateHandler(prodRegistry, logger, c)).Methods("POST")
-	prods.Handle("/{id}", prodGetHandler(prodRegistry, logger)).Methods("GET")
-	prods.Handle("/{id}", prodUpdateHandler(prodRegistry, logger, c)).Methods("PUT")
-	prods.Handle("/{id}", prodDeleteHandler(prodRegistry, logger, c)).Methods("DELETE")
+	tasks := r.PathPrefix("/tasks").Subrouter()
+	tasks.Handle("/", tasksGetHandler(taskRegistry, logger)).Methods("GET")
+	tasks.Handle("/", tasksCreateHandler(taskRegistry, logger, c)).Methods("POST")
+	tasks.Handle("/{id}", taskGetHandler(taskRegistry, logger)).Methods("GET")
+	tasks.Handle("/{id}", taskUpdateHandler(taskRegistry, logger, c)).Methods("PUT")
+	tasks.Handle("/{id}", taskDeleteHandler(taskRegistry, logger, c)).Methods("DELETE")
 
 	return r
 }
