@@ -27,7 +27,7 @@ func taskGetHandler(registry registry.TaskRegistry, logger lager.Logger) http.Ha
 			return
 		}
 
-		task, err := registry.ByID(id)
+		task, err := registry.ByID(uint(id))
 		if err != nil {
 			logger.Error("Failed to find existing task in registry", err)
 			rw.WriteHeader(http.StatusInternalServerError)
@@ -65,7 +65,7 @@ func taskUpdateHandler(registry registry.TaskRegistry, logger lager.Logger, c *c
 			return
 		}
 
-		task, err := registry.ByID(id)
+		task, err := registry.ByID(uint(id))
 		if err != nil {
 			logger.Error("Failed to find existing task in registry", err)
 			rw.WriteHeader(http.StatusInternalServerError)
@@ -137,7 +137,7 @@ func taskDeleteHandler(registry registry.TaskRegistry, logger lager.Logger, c *c
 			return
 		}
 
-		task, err := registry.ByID(id)
+		task, err := registry.ByID(uint(id))
 		if err != nil {
 			logger.Error("Failed to find existing task in registry", err)
 			rw.WriteHeader(http.StatusInternalServerError)

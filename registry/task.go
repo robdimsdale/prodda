@@ -20,7 +20,7 @@ type TaskRegistry interface {
 	// ByID will return error if there is an error retriving a task which exists.
 	// If the execution completes without error, and task is not found,
 	// both the returned error and task will be nil.
-	ByID(ID int) (domain.Task, error)
+	ByID(ID uint) (domain.Task, error)
 
 	// Update will return an error if the task does not exist.
 	// Callers are expected to first verify that the task exists,
@@ -57,17 +57,17 @@ func (r *InMemoryTaskRegistry) Add(p domain.Task) error {
 	return nil
 }
 
-func (r InMemoryTaskRegistry) uniqueRandomID() int {
-	newID := rand.Int()
+func (r InMemoryTaskRegistry) uniqueRandomID() uint {
+	newID := uint(rand.Uint32())
 	existingTask, _ := r.ByID(newID)
 	for existingTask != nil {
-		newID := rand.Int()
+		newID := uint(rand.Uint32())
 		existingTask, _ = r.ByID(newID)
 	}
 	return newID
 }
 
-func (r InMemoryTaskRegistry) ByID(ID int) (domain.Task, error) {
+func (r InMemoryTaskRegistry) ByID(ID uint) (domain.Task, error) {
 	_, found, err := r.byID(ID)
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func (r InMemoryTaskRegistry) ByID(ID int) (domain.Task, error) {
 	return found, nil
 }
 
-func (r InMemoryTaskRegistry) byID(ID int) (int, domain.Task, error) {
+func (r InMemoryTaskRegistry) byID(ID uint) (int, domain.Task, error) {
 	allTasks, err := r.All()
 	if err != nil {
 		return 0, nil, err

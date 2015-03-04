@@ -13,8 +13,8 @@ const (
 )
 
 type Task interface {
-	ID() int
-	SetID(id int) error
+	ID() uint
+	SetID(id uint) error
 
 	Schedule() string
 	SetSchedule(schedule string)
@@ -28,17 +28,17 @@ type Task interface {
 }
 
 type BaseTask struct {
-	id       int
+	id       uint
 	schedule string
 	logger   lager.Logger
 	entryID  cron.EntryID
 }
 
-func (t BaseTask) ID() int {
+func (t BaseTask) ID() uint {
 	return t.id
 }
 
-func (t *BaseTask) SetID(id int) error {
+func (t *BaseTask) SetID(id uint) error {
 	if t.id != 0 {
 		return fmt.Errorf("Task already has an ID: %d", t.id)
 	}
@@ -65,7 +65,7 @@ func (t *BaseTask) SetEntryID(entryID cron.EntryID) {
 type TaskJSON interface{}
 
 type BaseTaskJson struct {
-	ID       int          `json:"id"`
+	ID       uint         `json:"id"`
 	Schedule string       `json:"schedule"`
 	EntryID  cron.EntryID `json:"entryID"`
 	Type     string       `json:"type"`
