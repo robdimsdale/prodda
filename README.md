@@ -33,7 +33,7 @@ curl -XGET /tasks/
 
 #### Create new task
 
-The contents of the request body for creates must contain a `schedule` field (the contents of which must be valid cron syntax) and sufficient information to create or update a task, which varies by the type of task. See [supported tasks](#supported-tasks) for further information.
+The contents of the request body for creating a new task must contain a `schedule` field, the contents of which must be valid cron syntax, as well as sufficient information to create or update a task. This additional information varies by task type; see [supported tasks](#supported-tasks) for further information.
 
 ```
 curl -XPOST /tasks/ -d '{<task-body-as-json>}'
@@ -47,7 +47,7 @@ curl -XGET /tasks/:id
 
 #### Update existing task
 
-The contents of the request body for updates must contain a `schedule` field (the contents of which must be valid cron syntax). Updating attributes of a task is not currently supported - instead the recommended approach is to delete the task and create a new one with the desired attributes.
+The contents of the request body for updates must contain a `schedule` field, the contents of which must be valid cron syntax. Updating attributes of a task is not currently supported - instead the recommended approach is to delete the task and create a new one with the desired attributes.
 
 ```
 curl -XPUT /tasks/:id -d '{<updated-task-body-as-json>}'
@@ -80,11 +80,9 @@ Re-running a specific travis build can be accomplished by creating a new task wi
 ```
 {
   "schedule":"15 03 * * *",
-  "task": {
-    "type": "travis-re-run",
-    "token":"my-travis-token",
-    "buildID":123456789
-  }
+  "type": "travis-re-run",
+  "token":"my-travis-token",
+  "buildID":123456789
 }
 
 ```
@@ -98,31 +96,31 @@ Running a url-get task can be achieved by creating a task with the following bod
 ```
 {
   "schedule":"15 03 * * *",
-  "task": {
-    "type": "url-get",
-    "url": "http://localhost/"
-  }
+  "type": "url-get",
+  "url": "http://localhost/"
 }
 ```
 
 ### No-op
 
-A no-op task is one which will log its start and finish points, sleeping for a configurable duration in between. The duration must comply with the [golang time.ParseDuration specification](http://golang.org/pkg/time/#ParseDuration):
+A no-op task is one which will log its start and finish points, sleeping for a configurable duration in between.
 
-- ParseDuration parses a duration string.
-- A duration string is a possibly signed sequence of decimal numbers,
-each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m".
-- Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+The duration is optional; it will default to zero if not present. If it is present then it must comply with the [time.ParseDuration specification](http://golang.org/pkg/time/#ParseDuration):
+
+*ParseDuration parses a duration string.*
+
+*A duration string is a possibly signed sequence of decimal numbers,
+each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m".*
+
+*Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".*
 
 Running a no-op task can be achieved by creating a task with the following body:
 
 ```
 {
   "schedule":"15 03 * * *",
-  "task": {
-    "type": "no-op",
-    "sleepDuration": "1m"
-  }
+  "type": "no-op",
+  "sleepDuration": "1m"
 }
 ```
 

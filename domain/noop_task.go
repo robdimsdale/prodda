@@ -17,7 +17,7 @@ type NoOpTask struct {
 
 type NoOpTaskJSON struct {
 	BaseTaskJson
-	SleepDuration time.Duration `json:"sleepDuration"`
+	SleepDuration string `json:"sleepDuration"`
 }
 
 func NewNoOpTask(schedule string, sleepDuration time.Duration, logger lager.Logger) *NoOpTask {
@@ -41,7 +41,7 @@ func (t NoOpTask) Run() {
 
 func (t NoOpTask) AsJSON() TaskJSON {
 	asJson := NoOpTaskJSON{
-		SleepDuration: t.sleepDuration,
+		SleepDuration: t.sleepDuration.String(),
 	}
 
 	asJson.Type = NoOpTaskType

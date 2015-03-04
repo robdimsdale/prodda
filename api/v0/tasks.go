@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"path"
 	"strconv"
@@ -14,11 +15,6 @@ import (
 	"github.com/pivotal-golang/lager"
 	"gopkg.in/robfig/cron.v2"
 )
-
-type tasksCreateUpdateRequestBody struct {
-	Schedule string                 `json:"schedule"`
-	Task     map[string]interface{} `json:"task"`
-}
 
 func taskGetHandler(registry registry.TaskRegistry, logger lager.Logger) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
@@ -85,7 +81,7 @@ func taskUpdateHandler(registry registry.TaskRegistry, logger lager.Logger, c *c
 		}
 
 		decoder := json.NewDecoder(r.Body)
-		var b tasksCreateUpdateRequestBody
+		var b domain.BaseTaskJson
 
 		err = decoder.Decode(&b)
 		if err != nil {
@@ -200,10 +196,17 @@ func tasksGetHandler(registry registry.TaskRegistry, logger lager.Logger) http.H
 
 func tasksCreateHandler(registry registry.TaskRegistry, logger lager.Logger, c *cron.Cron) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		decoder := json.NewDecoder(r.Body)
-		var b tasksCreateUpdateRequestBody
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			logger.Info("Failed to create task", lager.Data{"err": err.Error()})
+			rw.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(rw, "ERROR: %v\n", err)
+			return
+		}
 
-		err := decoder.Decode(&b)
+		var b domain.BaseTaskJson
+
+		err = json.Unmarshal(body, &b)
 		if err != nil {
 			logger.Info("Failed to create task", lager.Data{"err": err.Error()})
 			rw.WriteHeader(http.StatusBadRequest)
@@ -219,8 +222,7 @@ func tasksCreateHandler(registry registry.TaskRegistry, logger lager.Logger, c *
 			return
 		}
 
-		taskTypeRaw := b.Task["type"]
-		if taskTypeRaw == nil {
+		if b.Type == "" {
 			err := errors.New("Task type must be provided")
 			logger.Info("Failed to create task", lager.Data{"err": err.Error()})
 			rw.WriteHeader(http.StatusBadRequest)
@@ -228,12 +230,10 @@ func tasksCreateHandler(registry registry.TaskRegistry, logger lager.Logger, c *
 			return
 		}
 
-		taskType := taskTypeRaw.(string)
-
 		var task domain.Task
-		switch taskType {
+		switch b.Type {
 		case domain.TravisTaskType:
-			task, err = createTravisTaskConfig(b, logger)
+			task, err = createTravisTaskConfig(body, logger)
 			if err != nil {
 				logger.Info("Failed to create Travis task", lager.Data{"err": err.Error()})
 				rw.WriteHeader(http.StatusBadRequest)
@@ -241,7 +241,7 @@ func tasksCreateHandler(registry registry.TaskRegistry, logger lager.Logger, c *
 				return
 			}
 		case domain.NoOpTaskType:
-			task, err = createNoOpTaskConfig(b, logger)
+			task, err = createNoOpTaskConfig(body, logger)
 			if err != nil {
 				logger.Info("Failed to create NoOp task", lager.Data{"err": err.Error()})
 				rw.WriteHeader(http.StatusBadRequest)
@@ -249,7 +249,7 @@ func tasksCreateHandler(registry registry.TaskRegistry, logger lager.Logger, c *
 				return
 			}
 		case domain.URLGetTaskType:
-			task, err = createURLGetTaskConfig(b, logger)
+			task, err = createURLGetTaskConfig(body, logger)
 			if err != nil {
 				logger.Info("Failed to create URLGet task", lager.Data{"err": err.Error()})
 				rw.WriteHeader(http.StatusBadRequest)
@@ -257,7 +257,7 @@ func tasksCreateHandler(registry registry.TaskRegistry, logger lager.Logger, c *
 				return
 			}
 		default:
-			err := fmt.Errorf("Unrecognized task type: %s", taskType)
+			err := fmt.Errorf("Unrecognized task type: %s", b.Type)
 			logger.Info("Failed to create task", lager.Data{"err": err.Error()})
 			rw.WriteHeader(httpUnprocessableEntity)
 			fmt.Fprintf(rw, "ERROR: %v\n", err)
@@ -284,7 +284,7 @@ func tasksCreateHandler(registry registry.TaskRegistry, logger lager.Logger, c *
 			return
 		}
 
-		body, err := json.Marshal(task.AsJSON())
+		responseBody, err := json.Marshal(task.AsJSON())
 		if err != nil {
 			logger.Error("Failed to serialize task", err, lager.Data{"task": task.AsJSON()})
 			rw.WriteHeader(http.StatusInternalServerError)
@@ -295,84 +295,64 @@ func tasksCreateHandler(registry registry.TaskRegistry, logger lager.Logger, c *
 		logger.Info("Task created", lager.Data{"task": task.AsJSON()})
 
 		rw.WriteHeader(http.StatusCreated)
-		fmt.Fprintf(rw, string(body))
+		fmt.Fprintf(rw, string(responseBody))
 
 	})
 }
 
-func createTravisTaskConfig(b tasksCreateUpdateRequestBody, logger lager.Logger) (*domain.TravisTask, error) {
-	task := b.Task
-	tokenRaw := task["token"]
-	buildIDRaw := task["buildID"]
-
-	if tokenRaw == nil {
-		return nil, errors.New("Token must be provided")
-	}
-
-	if buildIDRaw == nil {
-		return nil, errors.New("BuildID must be provided")
-	}
-
-	var token string
-	switch tokenRaw.(type) {
-	case string:
-		token = tokenRaw.(string)
-	default:
-		return nil, fmt.Errorf("Cannot parse token: %v", tokenRaw)
-	}
-
-	var buildID64 float64
-	switch buildIDRaw.(type) {
-	case float64:
-		buildID64 = buildIDRaw.(float64)
-	default:
-		return nil, fmt.Errorf("Cannot parse buildID: %v", buildIDRaw)
-	}
-
-	buildID := uint(buildID64)
-
-	return domain.NewTravisTask(b.Schedule, token, buildID, logger), nil
-}
-
-func createNoOpTaskConfig(b tasksCreateUpdateRequestBody, logger lager.Logger) (*domain.NoOpTask, error) {
-	task := b.Task
-	sleepDurationRaw := task["sleepDuration"]
-
-	if sleepDurationRaw == nil {
-		return nil, errors.New("Sleep duration must be provided")
-	}
-
-	var sleepDurationString string
-	switch sleepDurationRaw.(type) {
-	case string:
-		sleepDurationString = sleepDurationRaw.(string)
-	default:
-		return nil, fmt.Errorf("Cannot parse sleep duration: %v", sleepDurationRaw)
-	}
-
-	sleepDuration, err := time.ParseDuration(sleepDurationString)
+func createTravisTaskConfig(b []byte, logger lager.Logger) (*domain.TravisTask, error) {
+	var task travisTaskConfig
+	err := json.Unmarshal(b, &task)
 	if err != nil {
 		return nil, err
 	}
 
-	return domain.NewNoOpTask(b.Schedule, sleepDuration, logger), nil
+	if task.Token == "" {
+		return nil, errors.New("Token must be provided")
+	}
+
+	if task.BuildID == 0 {
+		return nil, errors.New("BuildID must be provided")
+	}
+
+	return domain.NewTravisTask(task.Schedule, task.Token, task.BuildID, logger), nil
 }
 
-func createURLGetTaskConfig(b tasksCreateUpdateRequestBody, logger lager.Logger) (*domain.URLGetTask, error) {
-	task := b.Task
-	urlRaw := task["url"]
+type travisTaskConfig struct {
+	domain.TravisTaskJSON
+	Token string `json:"token"`
+}
 
-	if urlRaw == nil {
+func createNoOpTaskConfig(b []byte, logger lager.Logger) (*domain.NoOpTask, error) {
+	var task domain.NoOpTaskJSON
+	err := json.Unmarshal(b, &task)
+	if err != nil {
+		return nil, err
+	}
+
+	var sleepDuration time.Duration
+	if task.SleepDuration != "" {
+		sleepDuration, err = time.ParseDuration(task.SleepDuration)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		sleepDuration = 0
+	}
+
+	return domain.NewNoOpTask(task.Schedule, sleepDuration, logger), nil
+}
+
+func createURLGetTaskConfig(b []byte, logger lager.Logger) (*domain.URLGetTask, error) {
+	var task domain.URLGetTaskJSON
+	err := json.Unmarshal(b, &task)
+	if err != nil {
+		return nil, err
+	}
+
+	if task.URL == "" {
 		return nil, errors.New("URL must be provided")
 	}
 
-	var urlString string
-	switch urlRaw.(type) {
-	case string:
-		urlString = urlRaw.(string)
-	default:
-		return nil, fmt.Errorf("Cannot parse sleep duration: %v", urlRaw)
-	}
-
-	return domain.NewURLGetTask(b.Schedule, urlString, logger), nil
+	return domain.NewURLGetTask(task.Schedule, task.URL, logger), nil
 }
