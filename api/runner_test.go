@@ -5,7 +5,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/mfine30/prodda/api"
+	"github.com/prodda/prodda/api"
 	"github.com/pivotal-golang/lager/lagertest"
 	"gopkg.in/robfig/cron.v2"
 

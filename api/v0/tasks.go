@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mfine30/prodda/domain"
-	"github.com/mfine30/prodda/registry"
+	"github.com/prodda/prodda/domain"
+	"github.com/prodda/prodda/registry"
 	"github.com/pivotal-golang/lager"
 	"gopkg.in/robfig/cron.v2"
 )

@@ -21,7 +21,7 @@ var (
 
 var _ = BeforeSuite(func() {
 	var err error
-	pathToExecutable, err = gexec.Build("github.com/mfine30/prodda")
+	pathToExecutable, err = gexec.Build("github.com/prodda/prodda")
 	appPort = 40000 + config.GinkgoConfig.ParallelNode
 	Expect(err).ShouldNot(HaveOccurred())
 })

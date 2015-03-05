@@ -1,4 +1,4 @@
-# prodda [![Build Status](https://travis-ci.org/mfine30/prodda.svg?branch=master)](https://travis-ci.org/mfine30/prodda)
+# prodda [![Build Status](https://travis-ci.org/prodda/prodda.svg?branch=master)](https://travis-ci.org/prodda/prodda)
 
 Prods tasks on schedule.
 
@@ -130,9 +130,9 @@ The code is tested against the latest version of golang 1.4.
 
 ## Getting the code
 
-The [**develop**](https://github.com/mfine30/prodda/tree/develop) branch is where active development takes place; it is not guaranteed that any given commit will be stable.
+The [**develop**](https://github.com/prodda/prodda/tree/develop) branch is where active development takes place; it is not guaranteed that any given commit will be stable.
 
-The [**master**](https://github.com/mfine30/prodda/tree/master) branch points to a stable commit. All tests should pass.
+The [**master**](https://github.com/prodda/prodda/tree/master) branch points to a stable commit. All tests should pass.
 
 ### Dependency management
 
@@ -167,4 +167,4 @@ ginkgo -p -r -race -failOnPending -randomizeAllSpecs
 
 The upcoming work for prodda can be found on [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/1272036).
 
-Rull-requests are welcome; please make them against the [**develop**](https://github.com/mfine30/prodda/tree/develop) branch. Please also include ginkgo tests. Multiple small commits are preferred over a single monolithic commit.
+Rull-requests are welcome; please make them against the [**develop**](https://github.com/prodda/prodda/tree/develop) branch. Please also include ginkgo tests. Multiple small commits are preferred over a single monolithic commit.

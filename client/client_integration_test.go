@@ -3,7 +3,7 @@ package client_test
 import (
 	"fmt"
 
-	"github.com/mfine30/prodda/client"
+	"github.com/prodda/prodda/client"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

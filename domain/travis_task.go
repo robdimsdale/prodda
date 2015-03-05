@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"github.com/mfine30/prodda/client"
+	"github.com/prodda/prodda/client"
 	"github.com/pivotal-golang/lager"
 )
 

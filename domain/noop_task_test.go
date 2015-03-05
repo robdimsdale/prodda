@@ -3,7 +3,7 @@ package domain_test
 import (
 	"time"
 
-	"github.com/mfine30/prodda/domain"
+	"github.com/prodda/prodda/domain"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gbytes"

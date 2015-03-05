@@ -4,9 +4,9 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/mfine30/prodda/api"
-	"github.com/mfine30/prodda/registry"
-	"github.com/mfine30/prodda/schedule"
+	"github.com/prodda/prodda/api"
+	"github.com/prodda/prodda/registry"
+	"github.com/prodda/prodda/schedule"
 	"github.com/pivotal-golang/lager"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/grouper"

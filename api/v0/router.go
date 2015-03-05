@@ -2,7 +2,7 @@ package v0
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/mfine30/prodda/registry"
+	"github.com/prodda/prodda/registry"
 	"github.com/pivotal-golang/lager"
 	"gopkg.in/robfig/cron.v2"
 )

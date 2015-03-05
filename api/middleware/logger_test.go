@@ -3,10 +3,10 @@ package middleware_test
 import (
 	"net/http"
 
-	apifakes "github.com/mfine30/prodda/api/fakes"
+	apifakes "github.com/prodda/prodda/api/fakes"
 
-	"github.com/mfine30/prodda/api/middleware"
-	"github.com/mfine30/prodda/api/middleware/fakes"
+	"github.com/prodda/prodda/api/middleware"
+	"github.com/prodda/prodda/api/middleware/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

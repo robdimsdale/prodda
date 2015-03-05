@@ -3,8 +3,8 @@ package api_test
 import (
 	"net/http"
 
-	"github.com/mfine30/prodda/api"
-	apifakes "github.com/mfine30/prodda/api/fakes"
+	"github.com/prodda/prodda/api"
+	apifakes "github.com/prodda/prodda/api/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal-golang/lager/lagertest"

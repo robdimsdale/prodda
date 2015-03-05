@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/mfine30/prodda/api/middleware"
-	"github.com/mfine30/prodda/api/v0"
-	"github.com/mfine30/prodda/registry"
+	"github.com/prodda/prodda/api/middleware"
+	"github.com/prodda/prodda/api/v0"
+	"github.com/prodda/prodda/registry"
 	"github.com/pivotal-golang/lager"
 	"gopkg.in/robfig/cron.v2"
 )
