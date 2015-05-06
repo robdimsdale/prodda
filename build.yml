@@ -7,4 +7,4 @@ inputs:
 - name: prodda
 
 run:
-  path: prodda/scripts/ci/test
+  path: prodda/scripts/ci/test-unit

@@ -16,5 +16,6 @@ pushd ${BASE_DIR}
 
     go tool vet -composites=false $(ls -d */ | grep -v Godeps)
     go tool vet -composites=false *.go
-    ginkgo -p -r -race -failOnPending -randomizeAllSpecs
+    ginkgo -p -r -race -failOnPending -randomizeAllSpecs \
+        $(ls -d */ | grep -v Godeps | grep -v integration_test)
 popd

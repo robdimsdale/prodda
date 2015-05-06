@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -eux
+
+MY_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# This script expects that it lives two directories below the base directory.
+BASE_DIR="$( cd "${MY_DIR}/../.." && pwd )"
+
+go get golang.org/x/tools/cmd/vet
+go get -t -v -d ./...
+
+pushd ${BASE_DIR}
+    go build -v
+    go install github.com/onsi/ginkgo/ginkgo
+
+    go tool vet -composites=false $(ls -d */ | grep -v Godeps)
+    go tool vet -composites=false *.go
+    ginkgo -p -r -race -failOnPending -randomizeAllSpecs ./integration_test
+popd
