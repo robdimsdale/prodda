@@ -1,0 +1,10 @@
+---
+platform: linux
+
+image: docker:///golang#1.4.2
+
+inputs:
+- name: prodda
+
+run:
+  path: prodda/scripts/ci/test
