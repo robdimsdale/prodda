@@ -5,6 +5,10 @@ language: go
 go:
   - 1.4.2
 
+install:
+  - go get -t -v -d ./...
+  - go build -v
+
 before_script:
   - export PATH=$HOME/gopath/bin:$PATH
 
