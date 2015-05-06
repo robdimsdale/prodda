@@ -5,18 +5,12 @@ language: go
 go:
   - 1.4.2
 
-install:
-  - go get -t -v -d ./...
-  - go build -v
-  - go install github.com/onsi/ginkgo/ginkgo
-
 before_script:
   - export PATH=$HOME/gopath/bin:$PATH
 
 script:
-  - go tool vet -composites=false $(ls -d */ | grep -v Godeps)
-  - go tool vet -composites=false *.go
-  - ginkgo -p -r -race -failOnPending -randomizeAllSpecs
+  - ./scripts/ci/test-unit
+  - ./scripts/ci/test-integration
 
 branches:
   only:
